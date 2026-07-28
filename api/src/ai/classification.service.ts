@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
 import { ModelService } from './models.service'
 import { classificationBatchSchema, ClassificationBatchType, ClassificationType } from './schemas/classification.schma'
-import { Repository } from 'typeorm'
+import { In, Repository } from 'typeorm'
 import { Message } from 'src/messages/entities/message.entity'
 
 @Injectable()
@@ -10,6 +11,7 @@ export class ClassificationService {
 
   constructor(
     readonly modelService: ModelService,
+    @InjectRepository(Message)
     private readonly messageRepository: Repository<Message>,
   ) {
     this.classifierLlm = modelService.classicationModel.withStructuredOutput(classificationBatchSchema, {
@@ -30,11 +32,28 @@ export class ClassificationService {
     return classifiedMessages
   }
 
-  private async saveClassifications(results: ClassificationBatchType['results']): Promise<Message[]> {
-    return await this.messageRepository.save(results)
+  private async saveClassifications(results: ClassificationBatchType['results']): Promise<void> {
+    const buckets = new Map<string, { classification: ClassificationType; ids: string[] }>()
+
+    for (const result of results) {
+      const key = `${result.priority}:${result.topic}`
+      const bucket = buckets.get(key) ?? { classification: result, ids: [] }
+
+      bucket.ids.push(result.id)
+      buckets.set(key, bucket)
+    }
+
+    for (const { classification, ids } of buckets.values()) {
+      for (const idChunk of this.chunk(ids, 1_000)) {
+        await this.messageRepository.update(
+          { id: In(idChunk) },
+          { priority: classification.priority, topic: classification.topic },
+        )
+      }
+    }
   }
 
-  private async clasifyGroup(messages: Message[]): Promise<ClassificationType> {
+  private async clasifyGroup(messages: Message[]): Promise<ClassificationBatchType['results']> {
     const input = messages.map((message) => ({
       id: message.id,
       subject: message.subject ?? '',
@@ -83,7 +102,7 @@ export class ClassificationService {
   }
 
   private async mapWithConcurrency<T, R>(items: T[], concurrency: number, callback: (item: T) => Promise<R>): Promise<R[]> {
-    const results: R[] = new Array(items.length)
+    const results: R[] = new Array<R>(items.length)
     let nextIndex = 0
 
     async function worker(): Promise<void> {

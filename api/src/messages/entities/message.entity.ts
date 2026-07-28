@@ -2,6 +2,8 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 ////////////////////////////////////////////////////////////////////////////////////??DTOS
 import { CompactMessage } from '../dto/compact-message.dto'
+/////////////////////////////////////////////////////////////////////////////////??SCHEMAS
+import type { ClassificationType } from '../../ai/schemas/classification.schma'
 ////////////////////////////////////////////////////////////////////////////////////////??
 
 @Entity('messages')
@@ -52,6 +54,13 @@ export class Message {
 
   @Column({ nullable: true })
   threadRootId?: string
+
+  // Written by ClassificationService.saveClassifications; null until a message is classified.
+  @Column({ type: 'varchar', length: 16, nullable: true })
+  priority?: ClassificationType['priority']
+
+  @Column({ type: 'varchar', length: 32, nullable: true })
+  topic?: ClassificationType['topic']
 
   @CreateDateColumn()
   createdAt!: Date
