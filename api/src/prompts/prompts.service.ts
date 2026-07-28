@@ -7,6 +7,7 @@ import { Summary } from 'src/summaries/entities/summary.entity'
 import { Prompt } from './entities/prompt.entity'
 ////////////////////////////////////////////////////////////////////////////////??SERVICES
 import { AiService } from 'src/ai/ai.service'
+import { ClassificationService, type ClassifyPendingResult } from 'src/ai/classification.service'
 ////////////////////////////////////////////////////////////////////////////////////??DTOS
 import { UpsertPromptRequest } from './dto/upsert-prompt.dto'
 import { RunPromptRequest } from './dto/run-prompt.dto'
@@ -18,11 +19,16 @@ export class PromptsService {
     @InjectRepository(Prompt)
     private readonly promptRepository: Repository<Prompt>,
     private readonly aiService: AiService,
+    private readonly classificationService: ClassificationService,
   ) {}
 
   async findLatest(): Promise<Prompt> {
     const [prompt] = await this.promptRepository.find({ order: { createdAt: 'DESC' }, take: 1 })
     return prompt
+  }
+
+  async classifyMessages(): Promise<ClassifyPendingResult> {
+    return await this.classificationService.classifyPendingMessages()
   }
 
   async upsert(request: UpsertPromptRequest): Promise<Prompt> {

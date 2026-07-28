@@ -22,3 +22,7 @@ export class RunPromptResponse {
   message? = 'Prompt ran successfully'
   summary!: Summary
 }
+
+export class ClassifyMessagesResponse {
+  message!: string
+}

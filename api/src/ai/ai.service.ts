@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config'
 ////////////////////////////////////////////////////////////////////////////////??SERVICES
 import { SummariesService } from 'src/summaries/summary.service'
 import { MessagesService } from 'src/messages/messages.service'
+import { ClassificationService } from './classification.service'
 ////////////////////////////////////////////////////////////////////////////////////??DTOS
 import { CompactMessage } from 'src/messages/dto/compact-message.dto'
 import { MessageFilters } from 'src/messages/dto/message-filters.dto'
@@ -32,6 +33,7 @@ export class AiService {
     private readonly messagesService: MessagesService,
     private readonly summaryService: SummariesService,
     private readonly configService: ConfigService,
+    private readonly classificationService: ClassificationService,
   ) {
     this.timezone = this.configService.get<string>('TIMEZONE') || 'Europe/London'
     this.openAiApiKey = this.configService.getOrThrow<string>('OPENAI_API_KEY')

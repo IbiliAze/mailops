@@ -4,7 +4,7 @@ import { Controller, Get, Post, Body, Param, Delete, Put, UseGuards } from '@nes
 import { PromptsService } from './prompts.service'
 ////////////////////////////////////////////////////////////////////////////////////??DTOS
 import { UpsertPromptRequest } from './dto/upsert-prompt.dto'
-import { RunPromptRequest, RunPromptResponse } from './dto/run-prompt.dto'
+import { ClassifyMessagesResponse, RunPromptRequest, RunPromptResponse } from './dto/run-prompt.dto'
 import { PromptResponse } from './dto/prompt-response.dto'
 ////////////////////////////////////////////////////////////////////////////////////?GUARD
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
@@ -26,6 +26,13 @@ export class PromptsController {
   async run(@Body() request: RunPromptRequest): Promise<RunPromptResponse> {
     const summary = await this.promptsService.run(request)
     return { summary }
+  }
+
+  @Post('classify')
+  @UseGuards(JwtAuthGuard)
+  async classify(): Promise<ClassifyMessagesResponse> {
+    const result = await this.promptsService.classifyMessages()
+    return { message: `Classified ${result.classified} messages, remaining: ${result.remaining}, skipped: ${result.skipped}.` }
   }
 
   @Put()

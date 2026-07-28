@@ -1,9 +1,29 @@
+////////////////////////////////////////////////////////////////////////////////??PACKAGES
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
+import { In, IsNull, Not, Repository } from 'typeorm'
+////////////////////////////////////////////////////////////////////////////////??SERVICES
 import { ModelService } from './models.service'
-import { classificationBatchSchema, ClassificationBatchType, ClassificationType } from './schemas/classification.schma'
-import { In, Repository } from 'typeorm'
+////////////////////////////////////////////////////////////////////////////////??ENTITIES
 import { Message } from 'src/messages/entities/message.entity'
+/////////////////////////////////////////////////////////////////////////////////??SCHEMAS
+import { classificationBatchSchema, ClassificationBatchType, ClassificationType } from './schemas/classification.schma'
+////////////////////////////////////////////////////////////////////////////////////////??
+
+// How many batches may fail before a run gives up instead of burning the whole budget on errors.
+const MAX_FAILED_BATCHES = 3
+
+type ClassifyPendingOptions = {
+  batchSize?: number
+  maxMessages?: number
+  timeBudgetMs?: number
+}
+
+export type ClassifyPendingResult = {
+  classified: number
+  skipped: number
+  remaining: number
+}
 
 @Injectable()
 export class ClassificationService {
@@ -20,7 +40,37 @@ export class ClassificationService {
     })
   }
 
-  async classifyAllMessages(messages: Message[]): Promise<ClassificationBatchType['results']> {
+  async classifyPendingMessages({
+    batchSize = 500,
+    maxMessages = 10_000,
+    timeBudgetMs = 30 * 60 * 1_000,
+  }: ClassifyPendingOptions = {}): Promise<ClassifyPendingResult> {
+    const startedAt = Date.now()
+    const skippedIds: string[] = []
+    let classified = 0
+    let failedBatches = 0
+
+    while (classified < maxMessages && Date.now() - startedAt < timeBudgetMs) {
+      const take = Math.min(batchSize, maxMessages - classified)
+      const messages = await this.findUnclassified(take, skippedIds)
+
+      if (messages.length === 0) break
+
+      try {
+        const results = await this.classifyAllMessages(messages)
+        classified += results.length
+      } catch (error) {
+        failedBatches++
+        skippedIds.push(...messages.map((message) => message.id))
+
+        if (failedBatches >= MAX_FAILED_BATCHES) throw error
+      }
+    }
+
+    return { classified, skipped: skippedIds.length, remaining: await this.countUnclassified() }
+  }
+
+  private async classifyAllMessages(messages: Message[]): Promise<ClassificationBatchType['results']> {
     const groups = this.chunk(messages, 40)
 
     const groupedResults = await this.mapWithConcurrency(groups, 5, async (group) => this.clasifyGroup(group))
@@ -30,6 +80,19 @@ export class ClassificationService {
     await this.saveClassifications(classifiedMessages)
 
     return classifiedMessages
+  }
+
+  private async findUnclassified(limit = 500, excludeIds: string[] = []): Promise<Message[]> {
+    return await this.messageRepository.find({
+      where: { topic: IsNull(), ...(excludeIds.length > 0 && { id: Not(In(excludeIds)) }) },
+      select: { id: true, subject: true, text: true },
+      order: { date: 'DESC' },
+      take: limit,
+    })
+  }
+
+  private async countUnclassified(): Promise<number> {
+    return await this.messageRepository.count({ where: { topic: IsNull() } })
   }
 
   private async saveClassifications(results: ClassificationBatchType['results']): Promise<void> {

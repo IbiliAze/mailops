@@ -6,18 +6,21 @@ import { Cron, CronExpression } from '@nestjs/schedule'
 import { ImapService } from 'src/imap/imap.service'
 import { PromptsService } from 'src/prompts/prompts.service'
 import { AiService } from 'src/ai/ai.service'
+import { ClassificationService } from 'src/ai/classification.service'
 ////////////////////////////////////////////////////////////////////////////////////////??
 
 @Injectable()
 export class TasksService implements OnModuleInit {
   private readonly logger = new Logger(TasksService.name)
   private polling = false
+  private classifying = false
 
   constructor(
     private readonly configService: ConfigService,
     private readonly imapService: ImapService,
     private readonly promptsService: PromptsService,
     private readonly aiService: AiService,
+    private readonly classificationService: ClassificationService,
   ) {}
 
   async onModuleInit() {
@@ -62,6 +65,29 @@ export class TasksService implements OnModuleInit {
       this.logger.log(`[summary] generated ${summary.dateKey}`)
     } catch (error) {
       this.logger.error('[summary] error', error)
+    }
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+    timeZone: 'Europe/London',
+  })
+  async runClassifyMessages() {
+    if (this.classifying) return
+
+    this.classifying = true
+
+    try {
+      this.logger.log('[classification] running classification cron job')
+
+      const { classified, skipped, remaining } = await this.classificationService.classifyPendingMessages()
+
+      this.logger.log(`[classification] classified ${classified} messages, ${remaining} still unclassified`)
+
+      if (skipped > 0) this.logger.warn(`[classification] skipped ${skipped} messages after batch failures`)
+    } catch (error) {
+      this.logger.error('[classification] error', error)
+    } finally {
+      this.classifying = false
     }
   }
 }
