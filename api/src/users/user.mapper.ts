@@ -1,0 +1,18 @@
+////////////////////////////////////////////////////////////////////////////////??PACKAGES
+import { Injectable } from '@nestjs/common'
+////////////////////////////////////////////////////////////////////////////////////??DTOS
+import { UserDto } from './dto/user.dto'
+import { User } from './entities/user.entity'
+////////////////////////////////////////////////////////////////////////////////////////??
+
+@Injectable()
+export class UserMapper {
+  toDto(user: User): UserDto {
+    return {
+      id: user.id,
+      username: user.username,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    }
+  }
+}

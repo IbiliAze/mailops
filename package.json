@@ -1,0 +1,37 @@
+{
+  "name": "mailops",
+  "version": "0.30.0",
+  "private": true,
+  "workspaces": [
+    "api",
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently \"yarn workspace mailops-api start:dev\" \"yarn workspace mailops-web dev\"",
+    "dev:api": "yarn workspace mailops-api start:dev",
+    "dev:web": "yarn workspace mailops-web dev",
+    "build": "yarn workspace mailops-api build && yarn workspace mailops-web build",
+    "build:api": "yarn workspace mailops-api build",
+    "build:web": "yarn workspace mailops-web build",
+    "start": "yarn workspace mailops-api start:prod",
+    "start:api": "yarn workspace mailops-api start:prod",
+    "start:web": "yarn workspace mailops-web start",
+    "lint": "yarn workspace mailops-api lint && yarn workspace mailops-web lint",
+    "lint:api": "yarn workspace mailops-api lint",
+    "lint:web": "yarn workspace mailops-web lint",
+    "test": "yarn workspace mailops-api test",
+    "test:api": "yarn workspace mailops-api test",
+    "test:api:watch": "yarn workspace mailops-api test:watch",
+    "test:api:cov": "yarn workspace mailops-api test:cov",
+    "migration:show": "yarn workspace mailops-api migration:show",
+    "migration:run": "yarn workspace mailops-api migration:run",
+    "migration:generate": "yarn workspace mailops-api migration:generate",
+    "git": "git add . && git commit -m \"Changes\" && git push",
+    "release:patch": "yarn build && yarn git && yarn version --patch && git push --follow-tags",
+    "release:minor": "yarn build && yarn git && yarn version --minor && git push --follow-tags",
+    "release:major": "yarn build && yarn git && yarn version --major && git push --follow-tags"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

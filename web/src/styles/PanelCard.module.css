@@ -1,0 +1,39 @@
+.root {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  box-shadow: var(--card-shadow);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
+}
+
+.headerBordered {
+  border-bottom: 1px solid var(--border);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background-color: var(--surface-sunken);
+  color: var(--mantine-color-azure-filled);
+}
+
+.body {
+  padding: var(--mantine-spacing-lg);
+}
+
+.bodyFlush {
+  padding: 0;
+}

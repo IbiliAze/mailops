@@ -1,0 +1,36 @@
+.button {
+  overflow: hidden;
+  border-color: var(--border);
+  background-color: var(--surface);
+}
+
+.button:hover {
+  background-color: var(--surface-sunken);
+  border-color: var(--border-strong);
+}
+
+.icon {
+  position: absolute;
+  transition:
+    transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 200ms ease;
+}
+
+.sun {
+  color: var(--mantine-color-yellow-5);
+}
+
+.moon {
+  color: var(--mantine-color-azure-6);
+}
+
+/* The inactive icon spins away and fades out — only one is ever readable. */
+.hidden {
+  transform: rotate(-90deg) scale(0.4);
+  opacity: 0;
+}
+
+.visible {
+  transform: rotate(0deg) scale(1);
+  opacity: 1;
+}

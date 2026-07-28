@@ -1,0 +1,21 @@
+////////////////////////////////////////////////////////////////////////////////??PACKAGES
+import { Controller, Get, UseGuards } from '@nestjs/common'
+////////////////////////////////////////////////////////////////////////////////??SERVICES
+import { AccountsService } from './accounts.service'
+////////////////////////////////////////////////////////////////////////////////////??DTOS
+import { AccountsResponse } from './dto/account-response.dto'
+////////////////////////////////////////////////////////////////////////////////////?GUARD
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
+////////////////////////////////////////////////////////////////////////////////////////??
+
+@Controller('accounts')
+export class AccountsController {
+  constructor(private readonly accountsService: AccountsService) {}
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async findAll(): Promise<AccountsResponse> {
+    const accounts = await this.accountsService.findAll()
+    return { accounts, message: 'Accounts fetched' }
+  }
+}

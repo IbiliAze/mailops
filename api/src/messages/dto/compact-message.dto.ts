@@ -1,0 +1,20 @@
+////////////////////////////////////////////////////////////////////////////////??PACKAGES
+import { IsString } from 'class-validator'
+////////////////////////////////////////////////////////////////////////////////////////??
+
+export class CompactMessage {
+  @IsString()
+  from!: string
+
+  @IsString()
+  subject!: string
+
+  @IsString()
+  mailbox!: string
+
+  @IsString()
+  date?: Date
+
+  @IsString()
+  text!: string
+}

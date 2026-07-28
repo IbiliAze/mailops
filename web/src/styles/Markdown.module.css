@@ -1,0 +1,78 @@
+.root {
+  font-size: var(--mantine-font-size-sm);
+}
+
+.root h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--mantine-color-text);
+  margin-bottom: var(--mantine-spacing-md);
+}
+
+.root h2 {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--mantine-color-dimmed);
+  margin-top: var(--mantine-spacing-lg);
+  margin-bottom: var(--mantine-spacing-xs);
+}
+
+.root h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: var(--mantine-spacing-md);
+}
+
+.root ul,
+.root ol {
+  padding-inline-start: 1.1rem;
+}
+
+.root li {
+  margin-block: 5px;
+}
+
+.root li::marker {
+  color: var(--mantine-color-azure-filled);
+}
+
+.root p {
+  line-height: 1.65;
+}
+
+.root strong {
+  font-weight: 600;
+  color: var(--mantine-color-text);
+}
+
+.root a {
+  color: var(--mantine-color-azure-filled);
+  text-underline-offset: 2px;
+}
+
+.root code {
+  background-color: var(--surface-sunken);
+  border: 1px solid var(--border);
+  font-size: 0.85em;
+}
+
+.root blockquote {
+  border-inline-start: 2px solid var(--mantine-color-azure-5);
+  background-color: var(--surface-sunken);
+  border-radius: var(--mantine-radius-md);
+}
+
+.root table {
+  font-size: var(--mantine-font-size-xs);
+}
+
+.root table th {
+  background-color: var(--surface-sunken);
+}
+
+.root hr {
+  border-color: var(--border);
+}

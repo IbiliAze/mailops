@@ -1,0 +1,23 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: grid;
+  place-items: center;
+  padding: var(--mantine-spacing-md);
+  background-color: var(--page-bg);
+}
+
+.card {
+  width: min(400px, 100%);
+  padding: var(--mantine-spacing-xl);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.toggle {
+  position: absolute;
+  top: var(--mantine-spacing-md);
+  inset-inline-end: var(--mantine-spacing-md);
+}

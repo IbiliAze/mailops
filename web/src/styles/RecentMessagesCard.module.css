@@ -1,0 +1,102 @@
+.list {
+  position: relative;
+  min-height: 120px;
+}
+
+.row {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
+  text-align: start;
+  border-bottom: 1px solid var(--border);
+  transition: background-color 120ms ease;
+}
+
+.row:hover {
+  background-color: var(--surface-sunken);
+}
+
+/* Solid accent rail that slides in on hover / when the row is expanded. */
+.row::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 2px;
+  background-color: var(--mantine-color-azure-filled);
+  transform: scaleY(0);
+  transition: transform 140ms ease;
+}
+
+.row:hover::before,
+.rowOpen::before {
+  transform: scaleY(1);
+}
+
+.rowOpen {
+  background-color: var(--surface-sunken);
+}
+
+.subject {
+  font-weight: 600;
+  line-height: 1.35;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+
+.preview {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.chevron {
+  transition: transform 180ms ease;
+  color: var(--mantine-color-dimmed);
+  flex: none;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+  color: var(--mantine-color-azure-filled);
+}
+
+.detail {
+  padding: 0 var(--mantine-spacing-lg) var(--mantine-spacing-lg);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface-sunken);
+}
+
+.detailPaper {
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  padding: var(--mantine-spacing-md);
+}
+
+.metaKey {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--mantine-color-dimmed);
+  width: 46px;
+  flex: none;
+}
+
+.body {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: var(--mantine-font-size-sm);
+  line-height: 1.65;
+}
+
+.empty {
+  padding: var(--mantine-spacing-xl) var(--mantine-spacing-lg);
+}

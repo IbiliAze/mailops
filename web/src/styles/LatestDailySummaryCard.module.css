@@ -1,0 +1,19 @@
+.control {
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  color: var(--mantine-color-azure-filled);
+}
+
+/* Collapsed summaries fade into the card instead of being cut off mid-line. */
+.fade {
+  mask-image: linear-gradient(to bottom, #000 66%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 66%, transparent 100%);
+}
+
+.stamp {
+  border: 1px solid var(--border);
+  background-color: var(--surface-sunken);
+  color: var(--mantine-color-dimmed);
+  font-weight: 500;
+  text-transform: none;
+}

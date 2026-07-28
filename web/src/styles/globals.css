@@ -1,0 +1,65 @@
+:root {
+  color-scheme: light dark;
+
+  /* Solid surfaces + crisp hairlines. No translucency, no glow washes. */
+  --page-bg: #f4f6fa;
+  --surface: #ffffff;
+  --surface-sunken: #f7f9fc;
+  --surface-raised: #eef2f8;
+  --border: rgba(15, 23, 42, 0.09);
+  --border-strong: rgba(15, 23, 42, 0.16);
+  --card-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --card-shadow-hover: 0 4px 16px -8px rgba(15, 23, 42, 0.22);
+  --header-bg: rgba(255, 255, 255, 0.88);
+}
+
+[data-mantine-color-scheme='dark'] {
+  --page-bg: #0a0f1a;
+  --surface: #121a29;
+  --surface-sunken: #0e1522;
+  --surface-raised: #1a2436;
+  --border: rgba(146, 172, 224, 0.13);
+  --border-strong: rgba(146, 172, 224, 0.24);
+  --card-shadow: none;
+  --card-shadow-hover: none;
+  --header-bg: rgba(10, 15, 26, 0.86);
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background-color: var(--page-bg);
+}
+
+::selection {
+  background-color: var(--mantine-color-azure-5);
+  color: #ffffff;
+}
+
+/* Slim, theme-aware scrollbars. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--mantine-color-azure-4);
+  background-clip: content-box;
+}

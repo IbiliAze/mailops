@@ -1,0 +1,70 @@
+stages:
+  - build
+  - deploy
+
+default:
+  tags:
+    - tenant-a
+
+cache:
+  key:
+    files:
+      - yarn.lock
+  paths:
+    - node_modules/
+    - api/node_modules/
+    - web/node_modules/
+
+build:
+  stage: build
+  before_script:
+    - rm -rf api/dist web/.next web/out # clean before build
+  script:
+    - yarn install --frozen-lockfile
+    - yarn build
+  artifacts:
+    # Never add api/.env here — artifacts are downloadable by anyone with project access
+    # and are stored on GitLab. The env file is provisioned in the deploy stage instead.
+    paths:
+      - api/dist/
+      - web/out/
+      - package.json
+      - yarn.lock
+      - api/package.json
+      - web/package.json
+    expire_in: 1 hour
+  only:
+    - main
+    - master
+
+deploy:
+  stage: deploy
+  dependencies:
+    - build
+  script:
+    - yarn install --frozen-lockfile --production=false
+
+    - mkdir -p /var/www/mailops/api/dist
+    - mkdir -p /var/www/mailops/web/out
+
+    - rsync -a --delete api/dist/ /var/www/mailops/api/dist/
+    - rsync -a --delete web/out/ /var/www/mailops/web/out/
+
+    # api/.env comes from the API_ENV_FILE CI/CD variable (Type: File, masked + protected),
+    # never from the repo or the build artifacts. Fail loudly rather than deploy without it.
+    - test -n "$API_ENV_FILE" || { echo "API_ENV_FILE CI/CD variable is not set"; exit 1; }
+    - install -m 600 "$API_ENV_FILE" /var/www/mailops/api/.env
+
+    - rsync -a package.json yarn.lock /var/www/mailops/
+    - rsync -a api/package.json /var/www/mailops/api/
+    - rsync -a web/package.json /var/www/mailops/web/
+
+    - cd /var/www/mailops
+    - yarn install --frozen-lockfile --production=false
+
+    - pm2 delete mailops-api || true
+    - pm2 start "yarn workspace mailops-api start:prod" --name mailops-api
+    - pm2 save
+  only:
+    - main
+    - master

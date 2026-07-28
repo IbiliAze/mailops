@@ -1,0 +1,48 @@
+{
+  "compilerOptions": {
+    // Module
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ES2023",
+
+    // Imports
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    // Paths
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "baseUrl": "./",
+
+    // Build
+    "declaration": true,
+    "sourceMap": true,
+    "removeComments": true,
+    "incremental": false,
+
+    // Decorators
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    // Strictness
+    "strict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "strictBindCallApply": true,
+
+    // Checks
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    // Tooling
+    "skipLibCheck": true,
+    "ignoreDeprecations": "6.0",
+    "types": ["node", "jest"]
+  },
+
+  // Files
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,0 +1,19 @@
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
+  border-top: 1px solid var(--border);
+  background-color: var(--surface-sunken);
+}
+
+.pageBadge {
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--mantine-color-dimmed);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+}
