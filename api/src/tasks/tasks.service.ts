@@ -60,9 +60,9 @@ export class TasksService implements OnModuleInit {
       const prompt = await this.promptsService.findLatest()
       if (!prompt) return
 
-      const summary = await this.aiService.run(prompt)
+      const summary = await this.aiService.runPrompt({ ...prompt, timePeriod: 1 })
 
-      this.logger.log(`[summary] generated ${summary.dateKey}`)
+      this.logger.log(`[summary] generated ${summary.generatedAt.toISOString()}`)
     } catch (error) {
       this.logger.error('[summary] error', error)
     }

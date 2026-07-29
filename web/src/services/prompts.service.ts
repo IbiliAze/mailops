@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////////?TYPES
-import type { PromptResponse, RunPromptResponse } from '@/types/api-response.types'
+import type { ClassifyMessagesResponse, PromptResponse, RunPromptResponse } from '@/types/api-response.types'
 import type { Prompt, TimePeriod } from '@/types/prompt.types'
 ////////////////////////////////////////////////////////////////////////////////////////??
 
@@ -36,6 +36,19 @@ export async function savePrompt(prompt: SavePromptRequest): Promise<PromptRespo
 
   if (!res.ok) {
     throw new Error('Failed to save prompt')
+  }
+
+  return res.json()
+}
+
+export async function classifyMessages(): Promise<ClassifyMessagesResponse> {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/prompt/classify`, {
+    credentials: 'include',
+    method: 'POST',
+  })
+
+  if (!res.ok) {
+    throw new Error('Failed to classify messages')
   }
 
   return res.json()

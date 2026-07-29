@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////??PACKAGES
-import { IsArray, IsDateString, IsEmail, IsInt, IsOptional, IsString, Min } from 'class-validator'
+import { IsArray, IsBoolean, IsDateString, IsEmail, IsInt, IsOptional, IsString, Min } from 'class-validator'
 ////////////////////////////////////////////////////////////////////////////////////////??
 
 export class CreateMessageRequest {
@@ -50,4 +50,12 @@ export class CreateMessageRequest {
   @IsOptional()
   @IsString()
   threadRootId?: string
+
+  @IsOptional()
+  @IsBoolean()
+  seen?: boolean
+
+  @IsOptional()
+  @IsBoolean()
+  answered?: boolean
 }

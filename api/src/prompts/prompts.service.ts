@@ -40,7 +40,7 @@ export class PromptsService {
   }
 
   async run(request: RunPromptRequest): Promise<Summary> {
-    return await this.aiService.run(request)
+    return await this.aiService.runPrompt(request)
   }
 
   async remove(id: string): Promise<Prompt> {

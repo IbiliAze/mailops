@@ -16,17 +16,37 @@ import {
   Tooltip,
   UnstyledButton,
 } from '@mantine/core'
-import { IconChevronDown, IconInbox, IconInboxOff, IconMail, IconSend2 } from '@tabler/icons-react'
+import {
+  IconChevronDown,
+  IconCurrencyDollar,
+  IconInbox,
+  IconInboxOff,
+  IconMail,
+  IconSend2,
+  IconSpeakerphone,
+} from '@tabler/icons-react'
 import { ReactNode, useState } from 'react'
 ////////////////////////////////////////////////////////////////////////////////////?TYPES
-import type { Message } from '@/types/message.types'
+import type { Message, Priority, Topic } from '@/types/message.types'
 //////////////////////////////////////////////////////////////////////////////??COMPONENTS
 import PanelCard from './PanelCard'
-/////////////////////////////////////////////////////////////////////////////////??HELPERS
+//////////////////////////////////////////////////////////////////////////////////?HELPERS
 import { colorFor, displayName, fullDate, initials, relativeTime } from '@/utils/format'
-////////////////////////////////////////////////////////////////////////////////////STYLES
+//////////////////////////////////////////////////////////////////////////////////??STYLES
 import classes from '@/styles/RecentMessagesCard.module.css'
 ////////////////////////////////////////////////////////////////////////////////////////??
+
+const PRIORITY_COLORS: Record<Priority, string> = {
+  urgent: 'red',
+  high: 'orange',
+  medium: 'yellow',
+  low: 'gray',
+}
+
+const TOPIC_COLORS: Record<Topic, string> = {
+  sales: 'lagoon',
+  marketing: 'grape',
+}
 
 export default function RecentMessagesCard({ messages, loading, filters, pagination }: RecentMessagesCard) {
   // State
@@ -91,7 +111,11 @@ export default function RecentMessagesCard({ messages, loading, filters, paginat
                           </Text>
                         </Tooltip>
 
-                        <IconChevronDown size={16} stroke={2} className={`${classes.chevron} ${isOpen ? classes.chevronOpen : ''}`} />
+                        <IconChevronDown
+                          size={16}
+                          stroke={2}
+                          className={`${classes.chevron} ${isOpen ? classes.chevronOpen : ''}`}
+                        />
                       </Group>
                     </Group>
 
@@ -106,6 +130,8 @@ export default function RecentMessagesCard({ messages, loading, filters, paginat
                       >
                         {m.mailbox}
                       </Badge>
+
+                      <ClassificationBadges priority={m.priority} topic={m.topic} />
 
                       <Text className={classes.preview} fz="xs" c="dimmed">
                         {sender}{' '}
@@ -160,6 +186,40 @@ export default function RecentMessagesCard({ messages, loading, filters, paginat
 
       {pagination}
     </PanelCard>
+  )
+}
+
+function ClassificationBadges({ priority, topic }: { priority?: Priority | null; topic?: Topic | null }) {
+  if (!priority && !topic) return null
+
+  // JSX
+  return (
+    <>
+      {priority && (
+        <Tooltip label={`Priority: ${priority}`}>
+          <Badge variant="light" size="xs" radius="sm" fw={600} color={PRIORITY_COLORS[priority]}>
+            {priority}
+          </Badge>
+        </Tooltip>
+      )}
+
+      {topic && (
+        <Tooltip label={`Topic: ${topic}`}>
+          <Badge
+            variant="light"
+            size="xs"
+            radius="sm"
+            fw={600}
+            color={TOPIC_COLORS[topic]}
+            leftSection={
+              topic === 'sales' ? <IconCurrencyDollar size={10} stroke={2.2} /> : <IconSpeakerphone size={10} stroke={2.2} />
+            }
+          >
+            {topic}
+          </Badge>
+        </Tooltip>
+      )}
+    </>
   )
 }
 

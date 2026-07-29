@@ -9,7 +9,26 @@ import { CreateMessageRequest } from './dto/create-message.dto'
 import { UpdateMessageRequest } from './dto/update-message.dto'
 import { MessageFilters } from './dto/message-filters.dto'
 import { MESSAGE_SORT_FIELDS, type MessageSortField } from './dto/sort.dto'
+import { ClassifiedMessage } from './dto/classified-message.dto'
 ////////////////////////////////////////////////////////////////////////////////////////??
+
+const TEXT_LIMIT = 500
+
+type ClassificationStatisticsOptions = { since?: Date; limit?: number }
+
+type ClassificationRow = {
+  id: string
+  threadRootId: string | null
+  messageId: string | null
+  topic: NonNullable<Message['topic']>
+  priority: NonNullable<Message['priority']>
+  from: string
+  date: Date | null
+  seen: boolean
+  answered: boolean
+  subject: string
+  text: string
+}
 
 @Injectable()
 export class MessagesService {
@@ -41,6 +60,56 @@ export class MessagesService {
     const [messages, total] = await this.messageRepository.findAndCount({ where, order, take: limit, skip })
 
     return { messages, total, page, limit }
+  }
+
+  async getClassificationStatistics({ since, limit = 300 }: ClassificationStatisticsOptions = {}): Promise<ClassifiedMessage[]> {
+    const query = this.messageRepository
+      .createQueryBuilder('message')
+      .select([
+        'message.id AS id',
+        'message.threadRootId AS "threadRootId"',
+        'message.messageId AS "messageId"',
+        'message.topic AS topic',
+        'message.priority AS priority',
+        'message.from AS "from"',
+        'message.date AS date',
+        'message.seen AS seen',
+        'message.subject AS subject',
+        'message.text AS text',
+      ])
+      .addSelect(
+        `message.answered OR EXISTS (
+          SELECT 1 FROM messages reply
+          WHERE reply."threadRootId" = message."threadRootId"
+            AND message."threadRootId" <> ''
+            AND LOWER(reply.mailbox) LIKE '%sent%'
+            AND reply.date > message.date
+        )`,
+        'answered',
+      )
+      .where('message.topic IS NOT NULL')
+      .andWhere('message.priority IS NOT NULL')
+      .andWhere('LOWER(message.mailbox) LIKE :inbox', { inbox: '%inbox%' })
+      .orderBy(`CASE message.priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END`, 'ASC')
+      .addOrderBy('message.date', 'DESC')
+      .limit(limit)
+
+    if (since) query.andWhere('message.date >= :since', { since })
+
+    const rows = await query.getRawMany<ClassificationRow>()
+
+    return rows.map((row) => ({
+      id: row.id,
+      threadId: row.threadRootId || row.messageId || row.id,
+      topic: row.topic,
+      priority: row.priority,
+      from: row.from,
+      date: row.date ?? undefined,
+      seen: row.seen,
+      answered: row.answered,
+      subject: row.subject,
+      trimmedText: row.text.trim().slice(0, TEXT_LIMIT),
+    }))
   }
 
   async findById(id: string): Promise<Message> {
@@ -77,6 +146,22 @@ export class MessagesService {
 
     return await this.messageRepository.count({ where })
   }
+  async updateFlags({
+    accountEmail,
+    mailbox,
+    uid,
+    seen,
+    answered,
+  }: {
+    accountEmail: string
+    mailbox: string
+    uid: number
+    seen: boolean
+    answered: boolean
+  }): Promise<void> {
+    await this.messageRepository.update({ accountEmail, mailbox, uid }, { seen, answered })
+  }
+
   async create(request: CreateMessageRequest): Promise<Message> {
     return await this.messageRepository.save(request)
   }

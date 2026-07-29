@@ -118,15 +118,22 @@ export class ImapService {
         const uids: number[] = (await client.search({ since })) || []
         if (uids.length === 0) return
 
-        const fetcher = client.fetch(uids, { uid: true, source: true, envelope: true })
+        const fetcher = client.fetch(uids, { uid: true, source: true, envelope: true, flags: true })
 
         for await (const msg of fetcher) {
           const uid = msg.uid
           if (typeof uid !== 'number') continue
 
+          const seen = msg.flags?.has('\\Seen') ?? false
+          const answered = msg.flags?.has('\\Answered') ?? false
+
           // Upsert by (accountEmail, mailbox, uid)
           const exists = await this.messagesService.exists({ accountEmail: account.email, mailbox, uid })
-          if (exists) continue
+          if (exists) {
+            // Flags change after the first sync — a message gets read or replied to — so refresh them.
+            await this.messagesService.updateFlags({ accountEmail: account.email, mailbox, uid, seen, answered })
+            continue
+          }
 
           if (!msg.source) continue
 
@@ -163,6 +170,9 @@ export class ImapService {
               text: this.safeText(parsed),
 
               threadRootId: this.pickRootId(messageId, references, inReplyTo),
+
+              seen,
+              answered,
             })
           } catch (e) {
             console.error(`[imap] db write failed ${account.email} ${mailbox} uid=${uid}`, e)

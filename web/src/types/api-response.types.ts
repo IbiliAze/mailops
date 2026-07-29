@@ -56,6 +56,10 @@ export type RunPromptResponse = {
   summary: Summary
 }
 
+export type ClassifyMessagesResponse = {
+  message: string
+}
+
 export type MessageResponse = {
   message: string
   emailMessage: Message

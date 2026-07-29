@@ -32,7 +32,11 @@ export class PromptsController {
   @UseGuards(JwtAuthGuard)
   async classify(): Promise<ClassifyMessagesResponse> {
     const result = await this.promptsService.classifyMessages()
-    return { message: `Classified ${result.classified} messages, remaining: ${result.remaining}, skipped: ${result.skipped}.` }
+
+    const summary = `Classified ${result.classified} messages, remaining: ${result.remaining}, skipped: ${result.skipped}.`
+    const failure = result.errors.length > 0 ? ` First failure: ${result.errors[0]}` : ''
+
+    return { message: `${summary}${failure}` }
   }
 
   @Put()

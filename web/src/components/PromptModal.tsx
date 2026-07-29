@@ -12,8 +12,9 @@ import {
   Stack,
   Text,
   Textarea,
+  Tooltip,
 } from '@mantine/core'
-import { IconDeviceFloppy, IconEraser, IconEye, IconEyeOff, IconPlayerPlay, IconSparkles } from '@tabler/icons-react'
+import { IconDeviceFloppy, IconEraser, IconEye, IconEyeOff, IconPlayerPlay, IconSparkles, IconTags } from '@tabler/icons-react'
 import { Dispatch, SetStateAction, useEffect, useState } from 'react'
 ////////////////////////////////////////////////////////////////////////////////////?TYPES
 import type { Prompt, TimePeriod } from '@/types/prompt.types'
@@ -56,7 +57,18 @@ RULES:
 - Do NOT return JSON
 - Do NOT add explanations outside the format`
 
-export default function PromptModal({ open, prompt, loading, subjects, onChange, onClose, onSave, onRun, onReset }: PromptModal) {
+export default function PromptModal({
+  open,
+  prompt,
+  loading,
+  subjects,
+  onChange,
+  onClose,
+  onSave,
+  onRun,
+  onReset,
+  onClassify,
+}: PromptModal) {
   // State
   const [showFinalPrompt, setShowFinalPrompt] = useState(false)
 
@@ -94,7 +106,8 @@ export default function PromptModal({ open, prompt, loading, subjects, onChange,
             </Text>
 
             <Text c="dimmed" fz="xs" mt={2}>
-              Stored in the database · <Kbd size="xs">Esc</Kbd> to close · <Kbd size="xs">⌘/Ctrl</Kbd> + <Kbd size="xs">S</Kbd> to save
+              Stored in the database · <Kbd size="xs">Esc</Kbd> to close · <Kbd size="xs">⌘/Ctrl</Kbd> + <Kbd size="xs">S</Kbd> to
+              save
             </Text>
           </Box>
         </Group>
@@ -166,9 +179,24 @@ export default function PromptModal({ open, prompt, loading, subjects, onChange,
         </Box>
 
         <Box className={classes.footer}>
-          <Button onClick={onReset} variant="subtle" color="gray" leftSection={<IconEraser size={16} stroke={1.8} />}>
-            Reset
-          </Button>
+          <Group gap="xs">
+            <Button onClick={onReset} variant="subtle" color="gray" leftSection={<IconEraser size={16} stroke={1.8} />}>
+              Reset
+            </Button>
+
+            <Tooltip label="Assigns a topic and priority to every message that does not have one yet" multiline w={240}>
+              <Button
+                onClick={onClassify}
+                disabled={loading?.classifyMessages}
+                loading={loading?.classifyMessages}
+                variant="subtle"
+                color="azure"
+                leftSection={loading?.classifyMessages ? undefined : <IconTags size={16} stroke={1.8} />}
+              >
+                {loading?.classifyMessages ? 'Classifying…' : 'Classify messages'}
+              </Button>
+            </Tooltip>
+          </Group>
 
           <Group gap="xs">
             <Button onClick={onClose} variant="default">
@@ -199,6 +227,7 @@ export default function PromptModal({ open, prompt, loading, subjects, onChange,
 type LoadingState = {
   runPrompt: boolean
   getSubjects: boolean
+  classifyMessages: boolean
 }
 
 type PromptModal = {
@@ -211,4 +240,5 @@ type PromptModal = {
   onSave: () => void
   onRun: () => void
   onReset: () => void
+  onClassify: () => void
 }

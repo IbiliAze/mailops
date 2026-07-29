@@ -3,7 +3,7 @@ import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common'
 ////////////////////////////////////////////////////////////////////////////////??SERVICES
 import { SummariesService } from './summary.service'
 ////////////////////////////////////////////////////////////////////////////////////??DTOS
-import { CreateSummaryRequest } from './dto/create-summary.dto'
+import { UpsertSummaryRequest } from './dto/upsert-summary.dto'
 import { SummaryResponse } from './dto/summary-response.dto'
 ////////////////////////////////////////////////////////////////////////////////////?GUARD
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
@@ -15,15 +15,15 @@ export class SummariesController {
 
   @Get('latest')
   @UseGuards(JwtAuthGuard)
-  async findLatest(): Promise<SummaryResponse> {
-    const summary = await this.summariesService.findLatest()
+  async find(): Promise<SummaryResponse> {
+    const summary = await this.summariesService.find()
     return { message: 'Summary fetched', summary }
   }
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async create(@Body() request: CreateSummaryRequest): Promise<SummaryResponse> {
-    const summary = await this.summariesService.create(request)
-    return { message: 'Summary created', summary }
+  async upsert(@Body() request: UpsertSummaryRequest): Promise<SummaryResponse> {
+    const summary = await this.summariesService.upsert(request)
+    return { message: 'Summary saved', summary }
   }
 }

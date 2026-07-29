@@ -6,7 +6,7 @@ import { AppShell, Box, Container, Loader, Stack, Text } from '@mantine/core'
 ////////////////////////////////////////////////////////////////////////////////////??SERVICES
 import { getMe, login } from '@/services/auth.service'
 import { getMessages, getSubjects } from '@/services/messages.service'
-import { getPrompt, runPrompt, savePrompt } from '@/services/prompts.service'
+import { classifyMessages, getPrompt, runPrompt, savePrompt } from '@/services/prompts.service'
 import { getAccounts } from '@/services/accounts.service'
 ////////////////////////////////////////////////////////////////////////////////////?TYPES
 import type { Stats } from '@/types/stats.types'
@@ -60,7 +60,13 @@ export default function HomePage() {
   const [messageTotal, setMessageTotal] = useState(0)
 
   // Loading state
-  const [loading, setLoading] = useState({ runPrompt: false, getSubjects: false, messages: false, refresh: false })
+  const [loading, setLoading] = useState({
+    runPrompt: false,
+    getSubjects: false,
+    messages: false,
+    refresh: false,
+    classifyMessages: false,
+  })
 
   // Helpers
   const checkMe = async () => {
@@ -208,6 +214,21 @@ export default function HomePage() {
     }
   }
 
+  const onClassify = async () => {
+    try {
+      setLoading((c) => ({ ...c, classifyMessages: true }))
+
+      await classifyMessages()
+
+      // Reload the current page so the new topic/priority badges appear without a manual refresh.
+      await loadMessages()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading((c) => ({ ...c, classifyMessages: false }))
+    }
+  }
+
   const resetPrompt = () => {
     setPrompt((c) => ({ ...(c ?? {}), prompt: '' }) as Prompt)
   }
@@ -314,13 +335,18 @@ export default function HomePage() {
         <PromptModal
           open={promptOpen}
           prompt={prompt}
-          loading={{ runPrompt: loading.runPrompt, getSubjects: loading.getSubjects }}
+          loading={{
+            runPrompt: loading.runPrompt,
+            getSubjects: loading.getSubjects,
+            classifyMessages: loading.classifyMessages,
+          }}
           subjects={subjects}
           onChange={setPrompt}
           onClose={() => setPromptOpen(false)}
           onSave={onSave}
           onRun={onRun}
           onReset={resetPrompt}
+          onClassify={onClassify}
         />
 
         <Container size="xl" py="xl" px="md">

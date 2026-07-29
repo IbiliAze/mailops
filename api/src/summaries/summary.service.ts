@@ -1,12 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////??PACKAGES
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 ////////////////////////////////////////////////////////////////////////////////??ENTITIES
-import { Summary } from './entities/summary.entity'
+import { Summary, SUMMARY_ID } from './entities/summary.entity'
 ////////////////////////////////////////////////////////////////////////////////////??DTOS
-import { CreateSummaryRequest } from './dto/create-summary.dto'
-import { UpdateSummaryRequest } from './dto/update-summary.dto'
+import { UpsertSummaryRequest } from './dto/upsert-summary.dto'
 ////////////////////////////////////////////////////////////////////////////////////////??
 
 @Injectable()
@@ -16,28 +15,13 @@ export class SummariesService {
     private readonly summaryRepository: Repository<Summary>,
   ) {}
 
-  async findAll(): Promise<Summary[]> {
-    return await this.summaryRepository.find({ order: { generatedAt: 'DESC' } })
+  async upsert(request: UpsertSummaryRequest): Promise<Summary> {
+    await this.summaryRepository.upsert({ ...request, id: SUMMARY_ID, generatedAt: new Date() }, ['id'])
+
+    return await this.summaryRepository.findOneOrFail({ where: { id: SUMMARY_ID } })
   }
 
-  async findLatest(): Promise<Summary> {
-    const [summary] = await this.summaryRepository.find({ order: { createdAt: 'DESC' }, take: 1 })
-    return summary
-  }
-
-  async findByDateKey(dateKey: string): Promise<Summary | null> {
-    const summary = await this.summaryRepository.findOne({ where: { dateKey } })
-    return summary
-  }
-
-  async create(request: CreateSummaryRequest): Promise<Summary> {
-    return await this.summaryRepository.save(request)
-  }
-
-  async update(id: string, request: UpdateSummaryRequest): Promise<Summary> {
-    const summary = await this.summaryRepository.findOne({ where: { id } })
-    if (!summary) throw new NotFoundException('Summary not found')
-    Object.assign(summary, request)
-    return this.summaryRepository.save(summary)
+  async find(): Promise<Summary | null> {
+    return await this.summaryRepository.findOne({ where: { id: SUMMARY_ID } })
   }
 }

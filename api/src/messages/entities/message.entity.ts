@@ -2,7 +2,7 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 ////////////////////////////////////////////////////////////////////////////////////??DTOS
 import { CompactMessage } from '../dto/compact-message.dto'
-/////////////////////////////////////////////////////////////////////////////////??SCHEMAS
+//////////////////////////////////////////////////////////////////////////////////?SCHEMAS
 import type { ClassificationType } from '../../ai/schemas/classification.schma'
 ////////////////////////////////////////////////////////////////////////////////////////??
 
@@ -54,6 +54,13 @@ export class Message {
 
   @Column({ nullable: true })
   threadRootId?: string
+
+  // IMAP \Seen and \Answered flags, refreshed on every poll.
+  @Column({ type: 'boolean', default: false })
+  seen!: boolean
+
+  @Column({ type: 'boolean', default: false })
+  answered!: boolean
 
   // Written by ClassificationService.saveClassifications; null until a message is classified.
   @Column({ type: 'varchar', length: 16, nullable: true })

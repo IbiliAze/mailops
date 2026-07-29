@@ -1,5 +1,9 @@
 export type Mailbox = 'INBOX' | 'Sent' | string;
 
+export type Priority = 'low' | 'medium' | 'high' | 'urgent';
+
+export type Topic = 'sales' | 'marketing';
+
 export type Message = {
   id: string;
   accountEmail: string;
@@ -14,6 +18,9 @@ export type Message = {
   date?: string | null;
   text: string;
   threadRootId?: string | null;
+  // Null until the classification cron has processed the message.
+  priority?: Priority | null;
+  topic?: Topic | null;
   createdAt: string;
   updatedAt: string;
 };

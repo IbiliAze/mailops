@@ -4,5 +4,5 @@ import { Summary } from '../entities/summary.entity'
 
 export class SummaryResponse {
   message!: string
-  summary!: Summary
+  summary!: Summary | null
 }

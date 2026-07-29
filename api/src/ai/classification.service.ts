@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////??PACKAGES
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { In, IsNull, Not, Repository } from 'typeorm'
 ////////////////////////////////////////////////////////////////////////////////??SERVICES
@@ -23,10 +23,12 @@ export type ClassifyPendingResult = {
   classified: number
   skipped: number
   remaining: number
+  errors: string[]
 }
 
 @Injectable()
 export class ClassificationService {
+  private readonly logger = new Logger(ClassificationService.name)
   private readonly classifierLlm
 
   constructor(
@@ -47,6 +49,7 @@ export class ClassificationService {
   }: ClassifyPendingOptions = {}): Promise<ClassifyPendingResult> {
     const startedAt = Date.now()
     const skippedIds: string[] = []
+    const errors: string[] = []
     let classified = 0
     let failedBatches = 0
 
@@ -63,11 +66,18 @@ export class ClassificationService {
         failedBatches++
         skippedIds.push(...messages.map((message) => message.id))
 
+        // A skipped batch is otherwise invisible: the ids are parked and the loop moves on, so the
+        // reason has to be recorded here or it is lost entirely.
+        const reason = error instanceof Error ? error.message : String(error)
+
+        errors.push(reason)
+        this.logger.error(`[classification] batch of ${messages.length} failed: ${reason}`, (error as Error)?.stack)
+
         if (failedBatches >= MAX_FAILED_BATCHES) throw error
       }
     }
 
-    return { classified, skipped: skippedIds.length, remaining: await this.countUnclassified() }
+    return { classified, skipped: skippedIds.length, remaining: await this.countUnclassified(), errors }
   }
 
   private async classifyAllMessages(messages: Message[]): Promise<ClassificationBatchType['results']> {

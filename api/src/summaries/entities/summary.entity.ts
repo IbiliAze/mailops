@@ -1,21 +1,27 @@
 ////////////////////////////////////////////////////////////////////////////////??PACKAGES
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
+import { Column, CreateDateColumn, Entity, PrimaryColumn, UpdateDateColumn } from 'typeorm'
 ////////////////////////////////////////////////////////////////////////////////////////??
 
+// The summaries table holds exactly one row. Every write upserts onto this id, so there is no way
+// for a second summary to exist.
+export const SUMMARY_ID = '00000000-0000-0000-0000-000000000001'
+
 @Entity('summaries')
-@Index(['dateKey'], { unique: true })
 export class Summary {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn('uuid')
   id!: string
 
-  @Column({ type: 'varchar', length: 10 })
-  dateKey!: string
+  @Column({ type: 'text' })
+  overview!: string
+
+  @Column({ type: 'json' })
+  keyFindings!: string[]
+
+  @Column({ type: 'json' })
+  recommendedActions!: string[]
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   generatedAt!: Date
-
-  @Column({ type: 'text' })
-  content!: string
 
   @CreateDateColumn()
   createdAt!: Date
