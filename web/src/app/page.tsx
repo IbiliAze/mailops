@@ -165,7 +165,7 @@ export default function HomePage() {
       ])
 
       setStats(stats)
-      setSummary(summary)
+      setSummary(summary ?? undefined)
       setPrompt(prompt || { prompt: '', timePeriod: 1 })
       setAccounts(accounts)
 

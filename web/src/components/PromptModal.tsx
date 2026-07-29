@@ -152,7 +152,10 @@ export default function PromptModal({
           label="Prompt"
           description="Describe what the summary should focus on."
           value={prompt?.prompt}
-          onChange={(e) => onChange((c) => ({ ...c, prompt: e.currentTarget.value }))}
+          onChange={(e) => {
+            const value = e.currentTarget.value
+            onChange((c) => ({ ...c, prompt: value }))
+          }}
           placeholder="Write your prompt here..."
           classNames={{ input: classes.textarea }}
           autosize

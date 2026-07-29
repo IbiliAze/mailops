@@ -26,6 +26,19 @@ export type ClassifyPendingResult = {
   errors: string[]
 }
 
+// A classification tied back to a database row. The model itself never sees or returns message ids.
+type MessageClassification = {
+  id: string
+  priority: ClassificationType['priority']
+  topic: ClassificationType['topic']
+}
+
+type ClassifyBatchResult = {
+  results: MessageClassification[]
+  failedIds: string[]
+  errors: string[]
+}
+
 @Injectable()
 export class ClassificationService {
   private readonly logger = new Logger(ClassificationService.name)
@@ -60,8 +73,19 @@ export class ClassificationService {
       if (messages.length === 0) break
 
       try {
-        const results = await this.classifyAllMessages(messages)
-        classified += results.length
+        const batch = await this.classifyAllMessages(messages)
+
+        classified += batch.results.length
+
+        if (batch.failedIds.length > 0) {
+          // Park the groups the model mishandled so the next pass moves on to fresh messages instead
+          // of re-selecting the same failures forever.
+          failedBatches++
+          skippedIds.push(...batch.failedIds)
+          errors.push(...batch.errors)
+
+          if (failedBatches >= MAX_FAILED_BATCHES) break
+        }
       } catch (error) {
         failedBatches++
         skippedIds.push(...messages.map((message) => message.id))
@@ -80,16 +104,32 @@ export class ClassificationService {
     return { classified, skipped: skippedIds.length, remaining: await this.countUnclassified(), errors }
   }
 
-  private async classifyAllMessages(messages: Message[]): Promise<ClassificationBatchType['results']> {
+  // Each group is isolated: one group the model mishandles no longer discards the results of the
+  // groups that succeeded alongside it.
+  private async classifyAllMessages(messages: Message[]): Promise<ClassifyBatchResult> {
     const groups = this.chunk(messages, 40)
 
-    const groupedResults = await this.mapWithConcurrency(groups, 5, async (group) => this.clasifyGroup(group))
+    const outcomes = await this.mapWithConcurrency(groups, 5, async (group) => {
+      try {
+        return { results: await this.clasifyGroup(group), failedIds: [] as string[], error: '' }
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error)
 
-    const classifiedMessages = groupedResults.flat()
+        this.logger.warn(`[classification] group of ${group.length} failed: ${reason}`)
 
-    await this.saveClassifications(classifiedMessages)
+        return { results: [] as MessageClassification[], failedIds: group.map((message) => message.id), error: reason }
+      }
+    })
 
-    return classifiedMessages
+    const results = outcomes.flatMap((outcome) => outcome.results)
+
+    await this.saveClassifications(results)
+
+    return {
+      results,
+      failedIds: outcomes.flatMap((outcome) => outcome.failedIds),
+      errors: outcomes.map((outcome) => outcome.error).filter(Boolean),
+    }
   }
 
   private async findUnclassified(limit = 500, excludeIds: string[] = []): Promise<Message[]> {
@@ -105,8 +145,8 @@ export class ClassificationService {
     return await this.messageRepository.count({ where: { topic: IsNull() } })
   }
 
-  private async saveClassifications(results: ClassificationBatchType['results']): Promise<void> {
-    const buckets = new Map<string, { classification: ClassificationType; ids: string[] }>()
+  private async saveClassifications(results: MessageClassification[]): Promise<void> {
+    const buckets = new Map<string, { classification: MessageClassification; ids: string[] }>()
 
     for (const result of results) {
       const key = `${result.priority}:${result.topic}`
@@ -126,9 +166,9 @@ export class ClassificationService {
     }
   }
 
-  private async clasifyGroup(messages: Message[]): Promise<ClassificationBatchType['results']> {
-    const input = messages.map((message) => ({
-      id: message.id,
+  private async clasifyGroup(messages: Message[]): Promise<MessageClassification[]> {
+    const input = messages.map((message, index) => ({
+      index,
       subject: message.subject ?? '',
       body: this.trimMessageBody(message.text),
     }))
@@ -149,9 +189,9 @@ export class ClassificationService {
           '- sales: leads, pricing, purchasing, demos, contracts, renewals',
           '- marketing: campaigns, promotions, newsletters, advertising, branding',
           '',
-          'Return exactly one result for every input email.',
-          'Copy every email ID exactly.',
-          'Do not omit or duplicate IDs.',
+          `Return exactly one result for every input email: ${messages.length} in, ${messages.length} out.`,
+          'Copy the "index" of each email into your result for it.',
+          'Do not omit or duplicate an index.',
         ].join('\n'),
       },
       {
@@ -161,7 +201,13 @@ export class ClassificationService {
     ])
 
     this.validateResults(messages, response.results)
-    return response.results
+
+    // The model only ever handles positions; the database ids never leave this method.
+    return response.results.map((result) => ({
+      id: messages[result.index].id,
+      priority: result.priority,
+      topic: result.topic,
+    }))
   }
 
   private chunk<T>(items: T[], size: number): T[][] {
@@ -196,22 +242,21 @@ export class ClassificationService {
   }
 
   private validateResults(messages: Message[], results: ClassificationBatchType['results']): void {
-    const expectedIds = new Set(messages.map((message) => message.id))
-    const returnedIds = new Set(results.map((result) => result.id))
+    const returnedIndexes = new Set(results.map((result) => result.index))
 
-    if (results.length !== returnedIds.size) {
-      throw new Error('The model returned duplicate message IDs')
+    if (results.length !== returnedIndexes.size) {
+      throw new Error('The model returned duplicate indexes')
     }
 
-    const missingIds = [...expectedIds].filter((id) => !returnedIds.has(id))
+    const missingIndexes = messages.map((_, index) => index).filter((index) => !returnedIndexes.has(index))
 
-    const unknownIds = [...returnedIds].filter((id) => !expectedIds.has(id))
+    const unknownIndexes = [...returnedIndexes].filter((index) => index >= messages.length)
 
-    if (missingIds.length > 0 || unknownIds.length > 0) {
+    if (missingIndexes.length > 0 || unknownIndexes.length > 0) {
       throw new Error(
-        `Invalid classification response. ` +
-          `Missing IDs: ${missingIds.join(', ') || 'none'}. ` +
-          `Unknown IDs: ${unknownIds.join(', ') || 'none'}.`,
+        `Invalid classification response for ${messages.length} emails. ` +
+          `Missing indexes: ${missingIndexes.join(', ') || 'none'}. ` +
+          `Out of range indexes: ${unknownIndexes.join(', ') || 'none'}.`,
       )
     }
   }

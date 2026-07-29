@@ -1,8 +1,9 @@
 export type Summary = {
   id: string;
-  dateKey: string;
   generatedAt: string;
-  content: string;
+  overview: string;
+  keyFindings: string[];
+  recommendedActions: string[];
   createdAt: string;
   updatedAt: string;
 };

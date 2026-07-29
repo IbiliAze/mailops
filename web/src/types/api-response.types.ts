@@ -43,7 +43,8 @@ export type AccountsResponse = {
 
 export type SummaryResponse = {
   message: string
-  summary: Summary
+  // Null until the first summary has been generated.
+  summary: Summary | null
 }
 
 export type PromptResponse = {

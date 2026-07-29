@@ -29,7 +29,7 @@ export default function LatestDailySummaryCard({ summary, collapsedLines = 10 }:
   // 24px because the markdown body renders at a 24px line height
   const collapsedMaxHeightPx = collapsedLines * 24
 
-  const stamp = summary?.generatedAt || summary?.dateKey
+  const stamp = summary?.generatedAt
 
   // JSX
   return (
@@ -40,7 +40,7 @@ export default function LatestDailySummaryCard({ summary, collapsedLines = 10 }:
       actions={
         stamp && (
           <Badge variant="default" size="lg" className={classes.stamp} leftSection={<IconClock size={12} stroke={2} />}>
-            {summary?.generatedAt ? relativeTime(summary.generatedAt) : summary?.dateKey}
+            {stamp ? relativeTime(stamp) : null}
           </Badge>
         )
       }
@@ -82,6 +82,6 @@ export default function LatestDailySummaryCard({ summary, collapsedLines = 10 }:
 }
 
 type LatestDailySummaryCard = {
-  summary?: { content?: string | null; generatedAt?: string | null; dateKey?: string | null }
+  summary?: { content?: string | null; generatedAt?: string | null }
   collapsedLines?: number
 }
