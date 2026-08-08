@@ -24,6 +24,8 @@ docker-compose.yml
 
 # Workspace-specific local overrides may contain secrets. Production uses the
 # repo-root .env written by GitLab CI from PROD_ENV.
+.env.local
+.env.*.local
 api/.env
 api/.env.local
 web/.env
