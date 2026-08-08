@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////??PACKAGES
 import { join } from 'path'
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
-import { ConfigModule, ConfigService } from '@nestjs/config'
+import { ConfigModule } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ScheduleModule } from '@nestjs/schedule'
 import { ServeStaticModule } from '@nestjs/serve-static'
@@ -44,14 +44,9 @@ import { requireEnv } from './common/utils/env.util'
     ScheduleModule.forRoot(),
 
     TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
+      useFactory: () => ({
         type: 'postgres',
-        host: requireEnv('DB_HOST'),
-        port: Number(config.get<string>('DB_PORT') || 5432),
-        username: requireEnv('DB_USERNAME'),
-        password: requireEnv('DB_PASSWORD'),
-        database: requireEnv('DB_DATABASE'),
+        url: requireEnv('DATABASE_URL'),
         autoLoadEntities: true,
         synchronize: false,
         migrations: ['dist/migrations/*.js'],

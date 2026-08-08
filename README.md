@@ -95,7 +95,7 @@ Configuration lives in one root `.env`; see [`.env.example`](.env.example).
 | --- | --- |
 | `PORT` | Local API port; production compose forces 5000 |
 | `WEB_URL` | Browser origin allowed by CORS |
-| `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE` | Postgres connection |
+| `DATABASE_URL` | Complete Postgres connection URL |
 | `AUTH_SECRET` | JWT signing secret, minimum 32 characters |
 | `ADMIN_USERNAME`, `ADMIN_PASSWORD` | Admin created by the initial migration |
 | `OPENAI_API_KEY` | Classification and summary models |
@@ -139,8 +139,9 @@ once before the first deploy.
 
 Create one protected GitLab variable named `PROD_ENV` containing the whole
 production `.env`. Start from `.env.example`, set `WEB_URL` to
-`https://mailops.eightmile.co.uk`, set `DB_HOST=haproxy` / `DB_PORT=5432`, and
-replace every credential. Multi-line GitLab variables cannot be masked, so mark
+`https://mailops.eightmile.co.uk`, set `DATABASE_URL` to
+`postgresql://USER:PASS@haproxy:5432/mailops?schema=public`, and replace every
+credential. Multi-line GitLab variables cannot be masked, so mark
 it Protected. `PORT` is set to 5000 in production compose.
 
 ## Extending MailOps

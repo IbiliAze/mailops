@@ -21,11 +21,7 @@ config({ path: join(__dirname, '..', '.env.local'), override: true })
 
 export default new DataSource({
   type: 'postgres',
-  host: requireEnv('DB_HOST'),
-  port: Number(process.env.DB_PORT || 5432),
-  username: requireEnv('DB_USERNAME'),
-  password: requireEnv('DB_PASSWORD'),
-  database: requireEnv('DB_DATABASE'),
+  url: requireEnv('DATABASE_URL'),
 
   entities: [User, Account, Message, Summary, Prompt],
 
