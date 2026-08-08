@@ -23,8 +23,8 @@
     "typeorm:ds": "node -r ts-node/register -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d src/data-source.ts",
     "migration:create": "yarn typeorm migration:create",
     "migration:show": "yarn typeorm:ds migration:show",
-    "migration:run": "yarn typeorm:ds migration:run",
-    "migration:run:prod": "node ./node_modules/typeorm/cli.js -d dist/data-source.js migration:run",
+    "migration:run": "node -r ts-node/register -r tsconfig-paths/register src/run-migrations.ts",
+    "migration:run:prod": "node dist/run-migrations.js",
     "migration:generate": "yarn typeorm:ds migration:generate src/migrations/AutoMigration"
   },
   "dependencies": {

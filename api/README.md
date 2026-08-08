@@ -49,9 +49,10 @@ yarn migration:run
 yarn migration:generate
 ```
 
-The source runner loads `src/data-source.ts`; the production entrypoint runs
-the same datasource compiled as `dist/data-source.js`. The migration glob is
-relative to `__dirname` so both modes resolve correctly.
+`src/run-migrations.ts` imports the datasource directly, applies pending
+migrations without logging SQL parameters, and is compiled to
+`dist/run-migrations.js` for the production entrypoint. The migration glob is
+relative to `__dirname` so source and compiled modes both resolve correctly.
 
 The initial migration creates and seeds the admin and `MAIL_ACCOUNTS`. It is not
 a reconciliation system: edit mailbox rows through a new migration or a future

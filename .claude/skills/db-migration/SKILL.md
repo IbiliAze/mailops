@@ -42,10 +42,12 @@ Migrations under `api/src/migrations` are the schema authority.
 
 ## Source and production resolution
 
-`api/src/data-source.ts` is used through ts-node locally and compiled to
-`api/dist/data-source.js` in production. Its migration glob is relative to
-`__dirname`; preserve that dual-mode behaviour. The production API entrypoint
-runs `migration:run:prod` with retries before starting Nest.
+`api/src/run-migrations.ts` imports `data-source.ts` through ts-node locally and
+is compiled to `api/dist/run-migrations.js` in production. The datasource's
+migration glob is relative to `__dirname`; preserve that dual-mode behaviour.
+The production API entrypoint runs `migration:run:prod` with retries before
+starting Nest. Do not switch it back to the TypeORM CLI: that command forces
+query logging and can print seed parameters containing mailbox credentials.
 
 The migration runner creates tables inside an existing database. It does not
 create the production role or database behind `haproxy:5432`.

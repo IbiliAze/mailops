@@ -36,8 +36,6 @@ import { requireEnv } from './common/utils/env.util'
       envFilePath: [
         join(__dirname, '..', '..', '.env.local'),
         join(__dirname, '..', '..', '.env'),
-        join(__dirname, '..', '.env.local'),
-        join(__dirname, '..', '.env'),
       ],
     }),
 

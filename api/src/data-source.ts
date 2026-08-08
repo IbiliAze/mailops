@@ -12,12 +12,10 @@ import { Prompt } from './prompts/entities/prompt.entity'
 import { requireEnv } from './common/utils/env.util'
 ////////////////////////////////////////////////////////////////////////////////////////??
 
-// Support the repo-root env used by Docker/CI while retaining workspace-local
-// overrides for existing development setups. Injected process env still wins.
+// Process/CI variables always win. `.env.local` takes precedence over `.env`
+// only when neither value was already injected into the process.
+config({ path: join(__dirname, '..', '..', '.env.local') })
 config({ path: join(__dirname, '..', '..', '.env') })
-config({ path: join(__dirname, '..', '..', '.env.local'), override: true })
-config({ path: join(__dirname, '..', '.env'), override: true })
-config({ path: join(__dirname, '..', '.env.local'), override: true })
 
 export default new DataSource({
   type: 'postgres',
@@ -28,5 +26,6 @@ export default new DataSource({
   migrations: [join(__dirname, 'migrations', '*.{js,ts}')],
 
   synchronize: false,
-  logging: true,
+  // Query parameters may contain seeded mailbox credentials.
+  logging: ['warn', 'error'],
 })

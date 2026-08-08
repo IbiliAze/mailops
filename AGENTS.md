@@ -36,9 +36,9 @@ just to inspect problems: its configured command uses `--fix`.
 
 ### Configuration
 
-The canonical file is the repo-root `.env`. The API also accepts legacy
-`api/.env(.local)` overrides. Never commit any env file. Production gets the
-entire root `.env` from the protected GitLab `PROD_ENV` variable.
+The only file-based configuration source is the repo-root `.env` (with optional
+repo-root `.env.local` overrides). Never commit either file. Production gets
+the entire root `.env` from the protected GitLab `PROD_ENV` variable.
 
 `MAIL_ACCOUNTS`, `ADMIN_USERNAME` and `ADMIN_PASSWORD` are consumed by the
 initial migration. They do not continuously reconcile existing records.
