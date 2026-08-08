@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: mailops-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mailops}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mailops}
+      POSTGRES_DB: ${POSTGRES_DB:-mailops}
+    ports:
+      # Avoid clashing with a locally installed Postgres or sibling projects.
+      - '${POSTGRES_PORT:-5436}:5432'
+    volumes:
+      - mailops-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-mailops} -d ${POSTGRES_DB:-mailops}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mailops-pgdata:

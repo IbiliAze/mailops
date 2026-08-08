@@ -1,0 +1,4 @@
+interface:
+  display_name: "Debug Mail Sync"
+  short_description: "Trace IMAP polling and message ingestion"
+  default_prompt: "Use $debug-mail-sync to diagnose a MailOps synchronisation issue."

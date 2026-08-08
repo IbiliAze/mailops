@@ -1,5 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////??PACKAGES
-import 'dotenv/config'
+import { config } from 'dotenv'
+import { join } from 'path'
 import { DataSource } from 'typeorm'
 ////////////////////////////////////////////////////////////////////////////////??ENTITIES
 import { User } from './users/entities/user.entity'
@@ -11,6 +12,13 @@ import { Prompt } from './prompts/entities/prompt.entity'
 import { requireEnv } from './common/utils/env.util'
 ////////////////////////////////////////////////////////////////////////////////////////??
 
+// Support the repo-root env used by Docker/CI while retaining workspace-local
+// overrides for existing development setups. Injected process env still wins.
+config({ path: join(__dirname, '..', '..', '.env') })
+config({ path: join(__dirname, '..', '..', '.env.local'), override: true })
+config({ path: join(__dirname, '..', '.env'), override: true })
+config({ path: join(__dirname, '..', '.env.local'), override: true })
+
 export default new DataSource({
   type: 'postgres',
   host: requireEnv('DB_HOST'),
@@ -21,7 +29,7 @@ export default new DataSource({
 
   entities: [User, Account, Message, Summary, Prompt],
 
-  migrations: ['src/migrations/*.ts'],
+  migrations: [join(__dirname, 'migrations', '*.{js,ts}')],
 
   synchronize: false,
   logging: true,

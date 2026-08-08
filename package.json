@@ -2,6 +2,9 @@
   "name": "mailops",
   "version": "0.30.0",
   "private": true,
+  "engines": {
+    "node": ">=22.12"
+  },
   "workspaces": [
     "api",
     "web"
@@ -13,6 +16,7 @@
     "build": "yarn workspace mailops-api build && yarn workspace mailops-web build",
     "build:api": "yarn workspace mailops-api build",
     "build:web": "yarn workspace mailops-web build",
+    "typecheck": "yarn workspace mailops-api typecheck && yarn workspace mailops-web typecheck",
     "start": "yarn workspace mailops-api start:prod",
     "start:api": "yarn workspace mailops-api start:prod",
     "start:web": "yarn workspace mailops-web start",
@@ -26,6 +30,10 @@
     "migration:show": "yarn workspace mailops-api migration:show",
     "migration:run": "yarn workspace mailops-api migration:run",
     "migration:generate": "yarn workspace mailops-api migration:generate",
+    "db:up": "docker compose up -d --wait postgres",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "setup": "yarn install --frozen-lockfile && yarn db:up && yarn migration:run",
     "git": "git add . && git commit -m \"Changes\" && git push",
     "release:patch": "yarn build && yarn git && yarn version --patch && git push --follow-tags",
     "release:minor": "yarn build && yarn git && yarn version --minor && git push --follow-tags",

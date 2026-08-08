@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////////?TYPES
 import type { ClassifyMessagesResponse, PromptResponse, RunPromptResponse } from '@/types/api-response.types'
-import type { Prompt, TimePeriod } from '@/types/prompt.types'
+import type { TimePeriod } from '@/types/prompt.types'
+import { apiUrl } from './api-url'
 ////////////////////////////////////////////////////////////////////////////////////////??
 
 export type RunPromptRequest = {
@@ -17,7 +18,7 @@ export type SavePromptRequest = {
 }
 
 export async function getPrompt(): Promise<PromptResponse> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/prompt`, { credentials: 'include' })
+  const res = await fetch(apiUrl('/api/prompt'), { credentials: 'include' })
 
   if (!res.ok) {
     throw new Error('Failed to fetch prompt')
@@ -27,7 +28,7 @@ export async function getPrompt(): Promise<PromptResponse> {
 }
 
 export async function savePrompt(prompt: SavePromptRequest): Promise<PromptResponse> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/prompt`, {
+  const res = await fetch(apiUrl('/api/prompt'), {
     credentials: 'include',
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -42,7 +43,7 @@ export async function savePrompt(prompt: SavePromptRequest): Promise<PromptRespo
 }
 
 export async function classifyMessages(): Promise<ClassifyMessagesResponse> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/prompt/classify`, {
+  const res = await fetch(apiUrl('/api/prompt/classify'), {
     credentials: 'include',
     method: 'POST',
   })
@@ -55,7 +56,7 @@ export async function classifyMessages(): Promise<ClassifyMessagesResponse> {
 }
 
 export async function runPrompt(prompt: RunPromptRequest): Promise<RunPromptResponse> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/prompt/run`, {
+  const res = await fetch(apiUrl('/api/prompt/run'), {
     credentials: 'include',
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

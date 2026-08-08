@@ -16,8 +16,16 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'MailOps — Mailbox Intelligence',
-  description: 'Tracks INBOX + Sent across mailboxes and generates daily AI summaries.',
+  title: {
+    default: 'MailOps by Eight Mile — Mailbox intelligence',
+    template: '%s · MailOps by Eight Mile',
+  },
+  description:
+    'MailOps syncs shared sales inboxes, identifies what matters, and turns every day of email into a clear, prioritised action plan.',
+  applicationName: 'MailOps',
+  authors: [{ name: 'Eight Mile' }],
+  creator: 'Eight Mile',
+  publisher: 'Eight Mile',
 }
 
 export const viewport: Viewport = {

@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////??PACKAGES
-import { Alert, Box, Button, Center, Divider, Paper, PasswordInput, Stack, Text, TextInput } from '@mantine/core'
+import { Alert, Anchor, Box, Button, Center, Divider, Paper, PasswordInput, Stack, Text, TextInput } from '@mantine/core'
 import { IconAlertTriangle, IconLock, IconLogin2, IconUser } from '@tabler/icons-react'
 import { useEffect } from 'react'
 //////////////////////////////////////////////////////////////////////////////??COMPONENTS
@@ -89,7 +89,11 @@ export default function LoginModal({ open, loading, error, username, password, o
         <Divider my="lg" color="var(--border)" />
 
         <Text fz="xs" c="dimmed" ta="center">
-          No registration — ask the admin for credentials.
+          Need access?{' '}
+          <Anchor href="https://eightmile.co.uk/contact" target="_blank" rel="noreferrer" inherit>
+            Contact Eight Mile
+          </Anchor>
+          .
         </Text>
       </Paper>
     </Box>

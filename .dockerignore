@@ -1,0 +1,33 @@
+# Build every runtime artefact inside the image.
+node_modules
+**/node_modules
+dist
+**/dist
+.next
+**/.next
+out
+**/out
+build
+
+*.tsbuildinfo
+coverage
+
+.git
+.gitlab-ci.yml
+.idea
+.vscode
+.DS_Store
+*.log
+
+# Local development infrastructure is not part of the production image.
+docker-compose.yml
+
+# Workspace-specific local overrides may contain secrets. Production uses the
+# repo-root .env written by GitLab CI from PROD_ENV.
+api/.env
+api/.env.local
+web/.env
+web/.env.local
+
+# NOTE: the repo-root `.env` is deliberately not ignored here. CI writes it
+# before `docker build`; the API and migration runner read it at runtime.

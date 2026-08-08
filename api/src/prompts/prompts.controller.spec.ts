@@ -12,7 +12,7 @@ describe('PromptsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PromptsController],
-      providers: [PromptsService],
+      providers: [{ provide: PromptsService, useValue: {} }],
     }).compile()
 
     controller = module.get<PromptsController>(PromptsController)

@@ -1,6 +1,4 @@
 ////////////////////////////////////////////////////////////////////////////////??PACKAGES
-import { Test, TestingModule } from '@nestjs/testing'
-////////////////////////////////////////////////////////////////////////////////??SERVICES
 import { AppService } from './app.service'
 //////////////////////////////////////////////////////////////////////////////?CONTROLLERS
 import { AppController } from './app.controller'
@@ -9,18 +7,18 @@ import { AppController } from './app.controller'
 describe('AppController', () => {
   let appController: AppController
 
-  beforeEach(async () => {
-    const app: TestingModule = await Test.createTestingModule({
-      controllers: [AppController],
-      providers: [AppService],
-    }).compile()
+  const appService = { getStats: jest.fn() }
 
-    appController = app.get<AppController>(AppController)
+  beforeEach(() => {
+    appController = new AppController(appService as unknown as AppService)
   })
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!')
+  describe('stats', () => {
+    it('returns stats from the service', async () => {
+      const response = { message: 'Stats fetched', stats: { inbox: 2, sent: 1, total: 3 } }
+      appService.getStats.mockResolvedValue(response)
+
+      await expect(appController.getStats()).resolves.toEqual(response)
     })
   })
 })

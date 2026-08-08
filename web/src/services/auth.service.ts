@@ -1,5 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////////?TYPES
 import type { UserAuthResponse, LogoutResponse } from '@/types/api-response.types'
+import { apiUrl } from './api-url'
 ////////////////////////////////////////////////////////////////////////////////////////??
 
 export type LoginRequest = {
@@ -8,7 +9,7 @@ export type LoginRequest = {
 }
 
 export async function login(request: LoginRequest): Promise<UserAuthResponse> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+  const res = await fetch(apiUrl('/api/auth/login'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -25,7 +26,7 @@ export async function login(request: LoginRequest): Promise<UserAuthResponse> {
 }
 
 export async function logout(): Promise<LogoutResponse> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
+  const res = await fetch(apiUrl('/api/auth/logout'), {
     method: 'POST',
     credentials: 'include',
   })
@@ -38,7 +39,7 @@ export async function logout(): Promise<LogoutResponse> {
 }
 
 export async function getMe(): Promise<UserAuthResponse | null> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+  const res = await fetch(apiUrl('/api/auth/me'), {
     credentials: 'include',
   })
 

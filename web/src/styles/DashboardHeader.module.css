@@ -6,6 +6,11 @@
   height: 100%;
 }
 
+.brandLink {
+  color: inherit;
+  text-decoration: none;
+}
+
 .session {
   border: 1px solid var(--border);
   background-color: var(--surface-sunken);

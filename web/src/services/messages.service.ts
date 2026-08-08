@@ -1,11 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////////?TYPES
 import type { MessagesResponse, SubjectsResponse } from '@/types/api-response.types'
+import { apiUrl } from './api-url'
 ////////////////////////////////////////////////////////////////////////////////////////??
 
 export async function getMessages(params: URLSearchParams): Promise<MessagesResponse> {
   const query = params.toString()
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/messages${query ? `?${query}` : ''}`, {
+  const res = await fetch(`${apiUrl('/api/messages')}${query ? `?${query}` : ''}`, {
     method: 'GET',
     credentials: 'include',
   })
@@ -20,7 +21,7 @@ export async function getMessages(params: URLSearchParams): Promise<MessagesResp
 export async function getSubjects(params: URLSearchParams): Promise<SubjectsResponse> {
   const query = params.toString()
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/messages/subjects${query ? `?${query}` : ''}`, {
+  const res = await fetch(`${apiUrl('/api/messages/subjects')}${query ? `?${query}` : ''}`, {
     method: 'GET',
     credentials: 'include',
   })

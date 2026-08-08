@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# mailops-web
 
-## Getting Started
-
-First, run the development server:
+Next.js 16 App Router UI using React 19 and Mantine 9. `/` is the marketing
+site; `/dashboard` contains login, mailbox filters, statistics, messages,
+summary and AI prompt controls.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+yarn dev:web            # http://localhost:3000
+yarn build:web          # writes web/out
+yarn workspace mailops-web typecheck
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Set `NEXT_PUBLIC_API_URL=http://localhost:5020` locally. Production builds it
+as an empty string: requests become same-origin `/api/...` calls, and the web
+container proxies them to the private API service.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Layout
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```text
+src/app/                 routes, metadata and Mantine provider
+src/components/          dashboard, marketing and shared controls
+src/services/            typed fetch functions and API URL helper
+src/styles/              global tokens plus CSS modules
+src/types/               API/UI shapes
+public/brand/            reusable SVG brand assets
+```
 
-## Learn More
+`next.config.ts` uses `output: 'export'`. Do not add server components that
+require request-time data, route handlers, middleware or server actions without
+changing the production architecture. The deploy image serves `web/out` using
+Nginx and resolves route paths with `.html` fallbacks.
 
-To learn more about Next.js, take a look at the following resources:
+## UI rules
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Keep `/` available as a marketing page; the web healthcheck depends on it.
+- Keep API calls behind `services/api-url.ts` so local cross-origin and
+  production same-origin modes both work.
+- Fetch with `credentials: 'include'`; auth is an httpOnly `session` cookie.
+- `DashboardHeader` is fixed, so dashboard content must retain enough top
+  offset at desktop and mobile sizes.
+- `BrandMark` owns the header lockup and Eight Mile byline. The footer uses the
+  standalone `MailOpsMark` next to its attribution.
+- When the logo geometry changes, update the component mark, public SVGs,
+  `app/icon.svg`, `favicon.ico` and `apple-icon.png` together.
+- Read the versioned Next.js docs in `node_modules/next/dist/docs/` before using
+  framework APIs; this repository runs Next 16.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Change AI Pipeline"
+  short_description: "Update classification and summary workflows"
+  default_prompt: "Use $change-ai-pipeline to modify MailOps AI processing safely."

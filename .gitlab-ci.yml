@@ -1,70 +1,58 @@
 stages:
-  - build
   - deploy
 
-default:
-  tags:
-    - tenant-a
-
-cache:
-  key:
-    files:
-      - yarn.lock
-  paths:
-    - node_modules/
-    - api/node_modules/
-    - web/node_modules/
-
-build:
-  stage: build
-  before_script:
-    - rm -rf api/dist web/.next web/out # clean before build
-  script:
-    - yarn install --frozen-lockfile
-    - yarn build
-  artifacts:
-    # Never add api/.env here — artifacts are downloadable by anyone with project access
-    # and are stored on GitLab. The env file is provisioned in the deploy stage instead.
-    paths:
-      - api/dist/
-      - web/out/
-      - package.json
-      - yarn.lock
-      - api/package.json
-      - web/package.json
-    expire_in: 1 hour
-  only:
-    - main
-    - master
-
-deploy:
+# Production is built on the shared Swarm manager. Local development stays on
+# developer machines (`yarn db:up && yarn dev`).
+deploy:prod:
   stage: deploy
-  dependencies:
-    - build
-  script:
-    - yarn install --frozen-lockfile --production=false
-
-    - mkdir -p /var/www/mailops/api/dist
-    - mkdir -p /var/www/mailops/web/out
-
-    - rsync -a --delete api/dist/ /var/www/mailops/api/dist/
-    - rsync -a --delete web/out/ /var/www/mailops/web/out/
-
-    # api/.env comes from the API_ENV_FILE CI/CD variable (Type: File, masked + protected),
-    # never from the repo or the build artifacts. Fail loudly rather than deploy without it.
-    - test -n "$API_ENV_FILE" || { echo "API_ENV_FILE CI/CD variable is not set"; exit 1; }
-    - install -m 600 "$API_ENV_FILE" /var/www/mailops/api/.env
-
-    - rsync -a package.json yarn.lock /var/www/mailops/
-    - rsync -a api/package.json /var/www/mailops/api/
-    - rsync -a web/package.json /var/www/mailops/web/
-
-    - cd /var/www/mailops
-    - yarn install --frozen-lockfile --production=false
-
-    - pm2 delete mailops-api || true
-    - pm2 start "yarn workspace mailops-api start:prod" --name mailops-api
-    - pm2 save
+  tags:
+    - app-primary
   only:
     - main
-    - master
+  script:
+    # A per-pipeline image tag makes env-only pipeline reruns roll the stack too.
+    - export TAG="$CI_PIPELINE_ID"
+
+    # PROD_ENV is one protected multi-line GitLab variable based on
+    # .env.example. The image stays on this host and is not pushed externally.
+    - test -n "$PROD_ENV" || { echo "PROD_ENV CI/CD variable is not set"; exit 1; }
+    - printf '%s\n' "$PROD_ENV" > .env
+
+    - docker build -t mailops:$TAG .
+    - docker stack deploy --resolve-image never -c deploy/docker/docker-compose.prod.yml mailops
+
+    # The shared reverse proxy uses the same wildcard certificate and config
+    # directory as JobOps. The guarded creation is safe across pipelines.
+    - |
+      sudo mkdir -p /opt/stacks/proxy/ssl
+      sudo flock /opt/stacks/proxy/ssl/.lock sh -c '
+        [ -f /opt/stacks/proxy/ssl/cert.pem ] || openssl req -x509 -nodes -newkey rsa:2048 -days 3650 \
+          -keyout /opt/stacks/proxy/ssl/key.pem \
+          -out /opt/stacks/proxy/ssl/cert.pem \
+          -subj "/CN=*.eightmile.co.uk" \
+          -addext "subjectAltName=DNS:*.eightmile.co.uk,DNS:eightmile.co.uk"
+      '
+    - sudo cp deploy/nginx/mailops.conf /opt/stacks/proxy/conf.d/
+    - docker exec $(docker ps -q -f name=proxy_nginx) nginx -t
+    - docker exec $(docker ps -q -f name=proxy_nginx) nginx -s reload
+
+    - docker images "mailops" --format '{{.Repository}}:{{.Tag}}' | grep -v ":$TAG$" | xargs -r docker rmi -f || true
+
+  after_script:
+    - rm -f .env
+
+# Required GitLab CI/CD variable:
+#
+#   PROD_ENV   protected   Full production env based on .env.example. Set:
+#                            NODE_ENV=production
+#                            WEB_URL=https://mailops.eightmile.co.uk
+#                            DB_HOST=haproxy
+#                            DB_PORT=5432
+#                            DB_USERNAME / DB_PASSWORD / DB_DATABASE=mailops
+#                            AUTH_SECRET (openssl rand -base64 48)
+#                            ADMIN_USERNAME / ADMIN_PASSWORD
+#                            OPENAI_API_KEY / MAIL_ACCOUNTS
+#
+# GitLab cannot mask a multi-line variable, so mark it Protected. The `mailops`
+# role/database must exist before first deploy; TypeORM creates tables, not the
+# database itself. PORT is fixed to 5000 by the production compose file.

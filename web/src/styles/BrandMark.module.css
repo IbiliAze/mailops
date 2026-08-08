@@ -7,31 +7,34 @@
 .badge {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   flex: none;
-  border-radius: 10px;
-  color: #ffffff;
-  background-color: var(--mantine-color-azure-6);
+}
+
+.badgeImage {
+  display: block;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 [data-mantine-color-scheme='dark'] .badge {
-  background-color: var(--mantine-color-azure-5);
+  filter: saturate(1.08) brightness(1.06);
 }
 
 .wordmark {
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 1rem;
   letter-spacing: -0.025em;
   line-height: 1.1;
   color: var(--mantine-color-text);
 }
 
 .tagline {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0;
   color: var(--mantine-color-dimmed);
   line-height: 1;
   margin-top: 3px;

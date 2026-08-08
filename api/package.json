@@ -7,6 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+    "typecheck": "tsc --noEmit -p tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -23,6 +24,7 @@
     "migration:create": "yarn typeorm migration:create",
     "migration:show": "yarn typeorm:ds migration:show",
     "migration:run": "yarn typeorm:ds migration:run",
+    "migration:run:prod": "node ./node_modules/typeorm/cli.js -d dist/data-source.js migration:run",
     "migration:generate": "yarn typeorm:ds migration:generate src/migrations/AutoMigration"
   },
   "dependencies": {
@@ -41,6 +43,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.1",
     "imapflow": "^1.0.181",
     "mailparser": "^3.7.1",
     "openai": "^6.45.0",
@@ -96,6 +99,9 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1"
+    }
   }
 }

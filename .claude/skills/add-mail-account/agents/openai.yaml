@@ -1,0 +1,4 @@
+interface:
+  display_name: "Add Mail Account"
+  short_description: "Add and seed a monitored IMAP mailbox"
+  default_prompt: "Use $add-mail-account to add a MailOps mailbox safely."

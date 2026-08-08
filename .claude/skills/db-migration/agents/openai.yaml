@@ -1,0 +1,4 @@
+interface:
+  display_name: "Database Migration"
+  short_description: "Create and apply safe TypeORM migrations"
+  default_prompt: "Use $db-migration to change the MailOps database schema safely."

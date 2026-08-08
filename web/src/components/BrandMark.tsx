@@ -1,25 +1,32 @@
 ////////////////////////////////////////////////////////////////////////////////??PACKAGES
 import { Box } from '@mantine/core'
-import { IconMailBolt } from '@tabler/icons-react'
 ////////////////////////////////////////////////////////////////////////////////////STYLES
 import classes from '@/styles/BrandMark.module.css'
 ////////////////////////////////////////////////////////////////////////////////////////??
 
-export default function BrandMark({ withTagline = true }: BrandMark) {
+export const EIGHT_MILE_URL = 'https://eightmile.co.uk'
+
+export function MailOpsMark({ className }: { className?: string }) {
+  // This project is statically exported, so Next image optimisation is unavailable.
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src="/brand/mailops-mark.svg" alt="" width={32} height={32} className={className} />
+}
+
+export default function BrandMark({ withByline = true }: BrandMark) {
   // JSX
   return (
     <Box className={classes.root}>
       <Box className={classes.badge}>
-        <IconMailBolt size={19} stroke={1.9} />
+        <MailOpsMark className={classes.badgeImage} />
       </Box>
 
       <Box>
         <Box className={classes.wordmark}>MailOps</Box>
 
-        {withTagline && <Box className={classes.tagline}>Mailbox intelligence</Box>}
+        {withByline && <Box className={classes.tagline}>by Eight Mile</Box>}
       </Box>
     </Box>
   )
 }
 
-type BrandMark = { withTagline?: boolean }
+type BrandMark = { withByline?: boolean }

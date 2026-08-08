@@ -10,7 +10,7 @@ export function requireEnv(name: string, options: RequireEnvOptions = {}): strin
   const hint = options.hint ? ` ${options.hint}` : ''
 
   if (!value) {
-    throw new Error(`${name} is not set. Add it to api/.env and to the deployment environment.${hint}`)
+    throw new Error(`${name} is not set. Add it to the repo-root .env and to the deployment environment.${hint}`)
   }
 
   if (options.minLength && value.length < options.minLength) {

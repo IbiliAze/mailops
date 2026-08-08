@@ -15,6 +15,7 @@ import { TasksModule } from './tasks/tasks.module'
 import { AccountsModule } from './accounts/accounts.module'
 //////////////////////////////////////////////////////////////////////////////?CONTROLLERS
 import { AppController } from './app.controller'
+import { HealthController } from './health.controller'
 ////////////////////////////////////////////////////////////////////////////////??SERVICES
 import { AppService } from './app.service'
 //////////////////////////////////////////////////////////////////////////////??MIDDLEWARE
@@ -32,7 +33,12 @@ import { requireEnv } from './common/utils/env.util'
 
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: [
+        join(__dirname, '..', '..', '.env.local'),
+        join(__dirname, '..', '..', '.env'),
+        join(__dirname, '..', '.env.local'),
+        join(__dirname, '..', '.env'),
+      ],
     }),
 
     ScheduleModule.forRoot(),
@@ -60,7 +66,7 @@ import { requireEnv } from './common/utils/env.util'
     MessagesModule,
     TasksModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [AppService],
 })
 export class AppModule implements NestModule {

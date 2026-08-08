@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////??PACKAGES
 import { ActionIcon, Badge, Box, Button, Group, Tooltip } from '@mantine/core'
 import { IconRefresh, IconSparkles, IconUser } from '@tabler/icons-react'
+import Link from 'next/link'
 //////////////////////////////////////////////////////////////////////////////??COMPONENTS
 import BrandMark from './BrandMark'
 import ThemeToggle from './ThemeToggle'
@@ -12,7 +13,9 @@ export default function DashboardHeader({ refreshLoading, username, onOpenPrompt
   // JSX
   return (
     <Box className={classes.bar}>
-      <BrandMark />
+      <Link href="/" className={classes.brandLink} aria-label="MailOps home">
+        <BrandMark />
+      </Link>
 
       <Group gap="xs" wrap="nowrap">
         {username && (

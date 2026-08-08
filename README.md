@@ -1,124 +1,154 @@
+<img src="web/public/brand/mailops-mark.svg" alt="" width="64" height="64" />
+
 # MailOps
 
-Email operations dashboard for shared sales inboxes. A NestJS API syncs IMAP mail into Postgres, classifies each message by topic and priority with an LLM, and generates structured summaries with key findings and recommended actions. The Next.js + Mantine UI shows threads, read/reply state, classification badges and stats.
+MailOps turns shared sales inboxes into a prioritised workspace. It syncs IMAP
+mail into Postgres, classifies topic and urgency with an LLM, and produces a
+daily summary of findings and next actions.
 
-## How it works
+```text
+IMAP accounts → sync + thread → classify → aggregate → action summary
+                     │             │            │
+                flags/replies   topic/priority  one current report
+```
 
-1. **Sync** — a background poll connects to every configured IMAP account and stores new messages from the inbox and sent mailboxes, along with their `\Seen` and `\Answered` flags and threading headers.
-2. **Classify** — an LLM assigns a `topic` (`sales` | `marketing`) and a `priority` (`urgent` | `high` | `medium` | `low`) to every message that doesn't have one yet, in batches, with structured output validated against a Zod schema.
-3. **Summarise** — the classified inbox is fed to a second model as statistics plus per-message context, which returns an overview, key findings and recommended actions. Exactly one summary row is kept, upserted on each run.
+## Quick start
 
-## Stack
-
-| | |
-|---|---|
-| API | NestJS 11, TypeORM, Postgres, LangChain (`@langchain/openai`) |
-| Web | Next.js 16 (App Router), React 19, Mantine 9 |
-| Auth | JWT in an httpOnly cookie |
-| Repo | Yarn workspaces (`api`, `web`) |
-
-## Getting started
-
-### Prerequisites
-
-- Node 20+ and Yarn
-- A Postgres database
-- An OpenAI API key
-- IMAP credentials for at least one mailbox
-
-### Setup
+You need Node 22.12+, Yarn 1.x, Docker, an OpenAI API key, and IMAP credentials.
 
 ```bash
-git clone <repo-url> mailops
-cd mailops
-yarn install
-
-cp api/.env.example api/.env
-cp web/.env.example web/.env
+cp .env.example .env
+# Add OPENAI_API_KEY, ADMIN_PASSWORD and optionally MAIL_ACCOUNTS.
+yarn setup
+yarn dev
 ```
 
-Fill in `api/.env`:
+Open <http://localhost:3000>. The marketing site is `/`; the authenticated app
+is `/dashboard`. The API listens on <http://localhost:5020>.
 
-| Variable | Notes |
-|---|---|
-| `PORT` | API port, defaults to `5020` |
-| `WEB_URL` | Frontend origin, added to the CORS allowlist |
-| `DB_*` | Postgres host, port, username, password, database |
-| `AUTH_SECRET` | Required — the API refuses to start without it. `openssl rand -base64 48` |
-| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | Seeds the initial login during the first migration |
-| `OPENAI_API_KEY` | Used by both the classifier and the summariser |
-| `MAIL_ACCOUNTS` | JSON array of mailboxes to seed. `port`/`secure`/`user`/`inbox`/`sent` are optional |
-| `IMAP_POLL_SECONDS` | Poll interval, defaults to `60` |
+`yarn setup` installs dependencies, starts Postgres on host port 5436, and
+applies all TypeORM migrations. The first migration seeds the admin and the
+mailboxes from `.env`; changing those seed values later does not update rows.
 
-Set `NEXT_PUBLIC_API_URL` in `web/.env` to the API's base URL (e.g. `http://localhost:5020`).
+## What it does
 
-### Run
+- Polls every configured Inbox and Sent mailbox and stores messages by
+  `(accountEmail, mailbox, uid)`.
+- Refreshes IMAP `Seen` and `Answered` flags for messages already stored.
+- Preserves message ids, references and a thread-root key for conversation
+  grouping.
+- Classifies unprocessed mail as `sales` or `marketing` and as `urgent`,
+  `high`, `medium` or `low`.
+- Generates one current structured summary with an overview, findings and
+  recommended actions.
+- Keeps credentials in an httpOnly, same-site session cookie.
+
+The IMAP poll currently searches the last three days. Classification and
+summary jobs run daily at midnight in `Europe/London`; polling defaults to every
+60 seconds. Both AI tasks can also be run from the dashboard.
+
+## Architecture
+
+```text
+mailops/
+├── api/                    NestJS 11, TypeORM, IMAP, AI and scheduling
+│   └── src/
+│       ├── accounts/       encrypted-at-rest is not implemented; see security note
+│       ├── imap/           mailbox sync
+│       ├── messages/       storage, filters and statistics
+│       ├── ai/             classification and summary model calls
+│       ├── prompts/        stored prompt and manual AI triggers
+│       ├── summaries/      single current summary
+│       ├── tasks/          timers and cron jobs
+│       └── migrations/     authoritative schema history
+├── web/                    Next.js 16 static export, React 19, Mantine 9
+├── deploy/docker/          production Swarm stack and API entrypoint
+├── deploy/nginx/           internal web and shared proxy configs
+└── .claude/skills/         repeatable maintenance workflows
+```
+
+The API and web package READMEs contain their local module and UI details:
+[api/README.md](api/README.md) and [web/README.md](web/README.md).
+
+## Commands
 
 ```bash
-yarn migration:run   # create the schema and seed the admin user + mail accounts
-yarn dev             # API and web together
+yarn dev              # API and web in watch mode
+yarn build            # production API + static web export
+yarn typecheck        # both workspaces
+yarn lint             # both workspaces; API lint currently fixes files
+yarn test             # API unit tests
+
+yarn db:up            # local Postgres
+yarn db:down
+yarn db:logs
+yarn migration:show
+yarn migration:run
+yarn migration:generate
 ```
 
-`yarn dev:api` and `yarn dev:web` run them individually. The dashboard is at `http://localhost:3000`; log in with the admin credentials from `api/.env`.
+## Configuration
 
-## Scheduled work
+Configuration lives in one root `.env`; see [`.env.example`](.env.example).
 
-| Job | Schedule |
-|---|---|
-| IMAP poll | Every `IMAP_POLL_SECONDS` (default 60s), re-entrancy guarded |
-| Classification | Daily at midnight (Europe/London), drains the backlog in batches |
-| Summary | Daily at midnight (Europe/London), over the previous day |
+| Variable | Purpose |
+| --- | --- |
+| `PORT` | Local API port; production compose forces 5000 |
+| `WEB_URL` | Browser origin allowed by CORS |
+| `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE` | Postgres connection |
+| `AUTH_SECRET` | JWT signing secret, minimum 32 characters |
+| `ADMIN_USERNAME`, `ADMIN_PASSWORD` | Admin created by the initial migration |
+| `OPENAI_API_KEY` | Classification and summary models |
+| `MAIL_ACCOUNTS` | One-line JSON array seeded by the initial migration |
+| `IMAP_POLL_SECONDS` | Poll interval; default 60 |
+| `NEXT_PUBLIC_API_URL` | Local API origin; empty in production for same-origin requests |
 
-Both daily jobs can be triggered on demand from the AI Prompt panel in the UI.
+`accounts.pass` currently stores IMAP passwords as plaintext in Postgres. Treat
+database access and backups as secret-bearing, and add application-level
+encryption before widening access to the system.
 
-## API
+## Deployment
 
-All routes are prefixed with `/api` and require the auth cookie unless noted.
+Production mirrors JobOps on the shared Docker Swarm host. Pushes to `main`
+build `mailops:$CI_PIPELINE_ID` and deploy two services from one image:
 
-| Method | Route | |
-|---|---|---|
-| `POST` | `/api/auth/login` | Public. Sets the session cookie |
-| `POST` | `/api/auth/logout` | |
-| `GET` | `/api/auth/me` | Current session |
-| `GET` | `/api/stats` | Dashboard counters |
-| `GET` | `/api/messages` | Paginated, filter by `accountEmail`, `subject`, `dateFrom`, `sortBy` |
-| `GET` | `/api/messages/subjects` | Distinct subjects, for the filter dropdown |
-| `GET` | `/api/messages/:id` | |
-| `GET` | `/api/accounts` | Configured mailboxes |
-| `GET` | `/api/prompt` | The stored prompt |
-| `PUT` | `/api/prompt` | Upsert the prompt |
-| `POST` | `/api/prompt/run` | Generate a summary now |
-| `POST` | `/api/prompt/classify` | Classify pending messages now |
-| `GET` | `/api/summary/latest` | The current summary, or `null` |
-
-## Migrations
-
-The schema is managed entirely by migrations — `synchronize` is off in every environment.
-
-```bash
-yarn migration:show                       # what's pending
-yarn migration:run                        # apply
-yarn workspace mailops-api migration:generate   # after changing an entity
+```text
+Internet
+  → shared proxy (TLS)
+  → mailops-web:5000 (static UI; /api proxy)
+  → mailops-api:5000
+  → haproxy:5432
+  → shared Postgres
 ```
 
-## Repository layout
+Files involved:
 
-```
-api/
-  src/ai/           classification + summarisation services, prompts, Zod schemas
-  src/imap/         mailbox polling and message ingestion
-  src/messages/     message entity, queries, classification statistics
-  src/summaries/    the single-row summary
-  src/tasks/        cron jobs
-  src/migrations/   schema history
-web/
-  src/app/          App Router pages
-  src/components/   dashboard cards, modals, filters
-  src/services/     API clients
-```
+| File | Responsibility |
+| --- | --- |
+| `.gitlab-ci.yml` | build, Swarm deploy, proxy config install/reload |
+| `Dockerfile` | one image containing both built workspaces |
+| `deploy/docker/docker-compose.prod.yml` | API/web services and shared networks |
+| `deploy/docker/api-entrypoint.sh` | retry migrations, then start Nest |
+| `deploy/nginx/web.conf` | serve static export and proxy `/api` privately |
+| `deploy/nginx/mailops.conf` | `mailops.eightmile.co.uk → mailops-web:5000` |
 
-## Notes
+Postgres is not deployed by this repository. In production the API joins the
+external `db-network` and connects to `haproxy:5432`; both app services use the
+external `monitoring-network`. Create the production role and `mailops` database
+once before the first deploy.
 
-- The IMAP poll searches the **last 3 days** only. Requesting a longer summary window returns less data than expected until that search is widened.
-- Classification sends the model array indices rather than database ids — a model mistyping one character of a UUID used to invalidate a whole batch.
-- A classification batch that fails is skipped for the remainder of that run and retried on the next one; failures are logged and returned in the response.
+Create one protected GitLab variable named `PROD_ENV` containing the whole
+production `.env`. Start from `.env.example`, set `WEB_URL` to
+`https://mailops.eightmile.co.uk`, set `DB_HOST=haproxy` / `DB_PORT=5432`, and
+replace every credential. Multi-line GitLab variables cannot be masked, so mark
+it Protected. `PORT` is set to 5000 in production compose.
+
+## Extending MailOps
+
+Read [AGENTS.md](AGENTS.md) before changing the system. Repeatable workflows are
+available under `.claude/skills/`:
+
+- `add-mail-account` — add a mailbox without mistaking seed config for updates.
+- `db-migration` — change entities and produce a safe TypeORM migration.
+- `debug-mail-sync` — trace IMAP connection, search, parsing and persistence.
+- `change-ai-pipeline` — change models, schemas, prompts or batch behaviour.
