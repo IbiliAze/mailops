@@ -1,6 +1,6 @@
 {
   "name": "mailops",
-  "version": "0.30.0",
+  "version": "0.30.1",
   "private": true,
   "engines": {
     "node": ">=22.12"
@@ -41,5 +41,8 @@
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
+  },
+  "resolutions": {
+    "multer": "^2.5.0"
   }
 }
