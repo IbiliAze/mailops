@@ -3,9 +3,12 @@
 # The Swarm stack runs this image as `mailops-api` and `mailops-web`. Building
 # both halves together guarantees that the static UI and API always come from
 # the same commit.
-FROM node:22-alpine
+FROM node:26.12.1-alpine
 
-RUN apk add --no-cache nginx
+# Node 26 images ship neither yarn nor corepack; yarn classic matches yarn.lock
+# and mise.toml.
+RUN apk add --no-cache nginx \
+    && npm install -g --silent --no-fund --no-audit yarn@1.22.22
 
 WORKDIR /app
 

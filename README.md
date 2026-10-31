@@ -14,7 +14,7 @@ IMAP accounts → sync + thread → classify → aggregate → action summary
 
 ## Quick start
 
-You need Node 22.12+, Yarn 1.x, Docker, an OpenAI API key, and IMAP credentials.
+You need Node 26.12.1+ (pinned in `mise.toml`), Yarn 1.x, Docker, an OpenAI API key, and IMAP credentials.
 
 ```bash
 cp .env.example .env
